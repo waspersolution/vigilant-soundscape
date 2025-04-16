@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAlert } from "@/contexts/AlertContext";
+import { useAlert } from "@/contexts/alert"; // Update to use the correct import path
 import { cn } from "@/lib/utils";
 import {
   Home,

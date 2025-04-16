@@ -5,9 +5,9 @@ import { Alert } from "@/types";
 // Enable realtime for the alerts table
 export const enableRealtimeForAlerts = async () => {
   try {
-    // Fix the parameter typing issue
+    // Fix the parameter typing issue by using type assertion
     const { error } = await supabase.rpc('enable_realtime_for_table', {
-      table_name: 'alerts' as any
+      table_name: 'alerts'
     });
     
     if (error) {

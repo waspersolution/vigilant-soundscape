@@ -20,6 +20,7 @@ import Index from "@/pages/Index";
 
 const queryClient = new QueryClient();
 
+// Move AlertProvider to wrap AppLayout so MobileNav can access it
 const AuthenticatedApp = () => {
   return (
     <LocationProvider>
