@@ -34,8 +34,10 @@ export default function Auth() {
   
   // Redirect if already authenticated
   useEffect(() => {
+    console.log("Auth page - Auth state:", { isAuthenticated, isLoading });
+    
     if (!isLoading && isAuthenticated) {
-      console.log("User is authenticated, redirecting to home");
+      console.log("User is authenticated in Auth page, redirecting to home");
       navigate("/", { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
@@ -52,6 +54,11 @@ export default function Auth() {
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  // Only render the auth UI if not authenticated
+  if (isAuthenticated) {
+    return null;
   }
 
   return (

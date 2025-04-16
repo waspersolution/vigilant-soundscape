@@ -23,6 +23,8 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
+  console.log("ProtectedRoute - Auth state:", { isAuthenticated, isLoading });
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -32,9 +34,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!isAuthenticated) {
+    console.log("User not authenticated, redirecting to auth page");
     return <Navigate to="/auth" replace />;
   }
   
+  console.log("User is authenticated, showing protected content");
   return <>{children}</>;
 };
 

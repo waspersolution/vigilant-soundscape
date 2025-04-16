@@ -8,10 +8,14 @@ export default function Index() {
   const { isAuthenticated, isLoading } = useAuth();
   
   useEffect(() => {
+    console.log("Index page - Auth state:", { isAuthenticated, isLoading });
+    
     if (!isLoading) {
       if (isAuthenticated) {
+        console.log("User is authenticated, navigating to home page");
         navigate("/", { replace: true });
       } else {
+        console.log("User is not authenticated, navigating to auth page");
         navigate("/auth", { replace: true });
       }
     }
