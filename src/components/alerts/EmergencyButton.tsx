@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,24 +12,16 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useAlert } from "@/contexts/AlertContext";
-import { useLocation } from "@/contexts/LocationContext";
-import { AlertTriangle, Siren, ShieldAlert, Radio, MapPin } from "lucide-react";
+import { AlertTriangle, Siren, ShieldAlert, Radio } from "lucide-react";
 
 export default function EmergencyButton() {
   const [open, setOpen] = useState(false);
   const [alertType, setAlertType] = useState<"panic" | "emergency" | "patrol_stop">("emergency");
   const [message, setMessage] = useState("");
   const { createAlert, isLoading } = useAlert();
-  const { currentLocation, startTracking } = useLocation();
-
-  const handleOpenDialog = () => {
-    if (!currentLocation) {
-      startTracking();
-    }
-    setOpen(true);
-  };
 
   const handleSendAlert = async () => {
+    // Priority mapping based on alert type
     const priorityMap = {
       panic: 1, // Highest priority
       emergency: 2,
@@ -50,7 +43,7 @@ export default function EmergencyButton() {
         size="lg"
         variant="destructive"
         className="fixed bottom-24 right-4 z-50 rounded-full h-16 w-16 shadow-lg animate-pulse-alert"
-        onClick={handleOpenDialog}
+        onClick={() => setOpen(true)}
       >
         <Siren className="h-8 w-8" />
       </Button>
@@ -63,18 +56,6 @@ export default function EmergencyButton() {
               Select the type of alert to broadcast to your community
             </DialogDescription>
           </DialogHeader>
-
-          {currentLocation ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              <span>Your location will be shared with this alert</span>
-            </div>
-          ) : (
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-md p-2 text-sm">
-              <span className="font-semibold">Waiting for location...</span>
-              <p>Your current location will be sent with this alert.</p>
-            </div>
-          )}
 
           <Tabs defaultValue="emergency" onValueChange={(v) => setAlertType(v as any)}>
             <TabsList className="grid grid-cols-3 mb-4">
@@ -167,7 +148,7 @@ export default function EmergencyButton() {
             <Button
               variant={alertType === "patrol_stop" ? "default" : "destructive"}
               onClick={handleSendAlert}
-              disabled={isLoading || !currentLocation}
+              disabled={isLoading}
             >
               {isLoading ? "Sending..." : "Send Alert"}
             </Button>

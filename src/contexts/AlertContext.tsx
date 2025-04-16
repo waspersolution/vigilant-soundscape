@@ -2,9 +2,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Alert } from "@/types";
 import { useAuth } from "./AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "./LocationContext";
-import { supabase } from "@/integrations/supabase/client";
 
 interface AlertContextType {
   alerts: Alert[];
@@ -16,145 +13,78 @@ interface AlertContextType {
   stopAlertSound: () => void;
 }
 
+// Mock initial alerts data
+const mockAlerts: Alert[] = [
+  {
+    id: "alert-1",
+    senderId: "user-789",
+    senderName: "Sarah Wilson",
+    communityId: "comm-123",
+    type: "panic",
+    location: {
+      latitude: 37.7739,
+      longitude: -122.4312
+    },
+    message: "Help! Suspicious person near the park entrance",
+    priority: 1,
+    resolved: false,
+    createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString() // 15 minutes ago
+  },
+  {
+    id: "alert-2",
+    senderId: "user-456",
+    senderName: "Mike Johnson",
+    communityId: "comm-123",
+    type: "patrol_stop",
+    location: {
+      latitude: 37.7749,
+      longitude: -122.4194
+    },
+    message: "Taking a scheduled break at main entrance",
+    priority: 4,
+    resolved: true,
+    resolvedBy: "user-123",
+    resolvedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString() // 1 hour ago
+  }
+];
+
 const AlertContext = createContext<AlertContextType | undefined>(undefined);
 
 export function AlertProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [alertSound, setAlertSound] = useState<HTMLAudioElement | null>(null);
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const { currentLocation } = useLocation();
 
   useEffect(() => {
-    if (!user?.communityId) {
-      setAlerts([]);
-      setIsLoading(false);
-      return;
-    }
-
-    // Fetch existing alerts
     const fetchAlerts = async () => {
       try {
-        setIsLoading(true);
-        const { data, error } = await supabase
-          .from('alerts')
-          .select('*, profiles:sender_id(full_name)')
-          .eq('community_id', user.communityId)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        if (data) {
-          const formattedAlerts: Alert[] = data.map(alert => ({
-            id: alert.id,
-            senderId: alert.sender_id,
-            senderName: alert.profiles?.full_name,
-            communityId: alert.community_id,
-            type: alert.type as Alert['type'],
-            location: alert.location,
-            message: alert.message || undefined,
-            priority: alert.priority as Alert['priority'],
-            resolved: !!alert.resolved,
-            resolvedBy: alert.resolved_by || undefined,
-            resolvedAt: alert.resolved_at || undefined,
-            createdAt: alert.created_at
-          }));
-          setAlerts(formattedAlerts);
-        }
+        // This would be replaced with actual API call
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setAlerts(mockAlerts);
       } catch (error) {
-        console.error("Error fetching alerts:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load alerts data",
-          variant: "destructive",
-        });
+        console.error("Failed to fetch alerts:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchAlerts();
-
-    // Subscribe to real-time alerts
-    const alertsChannel = supabase
-      .channel('public:alerts')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'alerts',
-        filter: `community_id=eq.${user.communityId}`
-      }, async (payload) => {
-        console.log('New alert received:', payload);
-        
-        // Fetch the sender name
-        const { data: senderData } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', payload.new.sender_id)
-          .single();
-        
-        const newAlert: Alert = {
-          id: payload.new.id,
-          senderId: payload.new.sender_id,
-          senderName: senderData?.full_name,
-          communityId: payload.new.community_id,
-          type: payload.new.type as Alert['type'],
-          location: payload.new.location,
-          message: payload.new.message || undefined,
-          priority: payload.new.priority as Alert['priority'],
-          resolved: !!payload.new.resolved,
-          resolvedBy: payload.new.resolved_by || undefined,
-          resolvedAt: payload.new.resolved_at || undefined,
-          createdAt: payload.new.created_at
-        };
-        
-        setAlerts(prev => [newAlert, ...prev]);
-        
-        // Play alert sound for new alerts
-        if (newAlert.priority <= 2) {
-          playAlertSound(newAlert.type);
-          
-          // Show toast notification
-          toast({
-            title: newAlert.type === 'panic' ? "PANIC ALERT" : 
-                  newAlert.type === 'emergency' ? "Emergency Alert" : 
-                  "New Alert",
-            description: newAlert.message || `New ${newAlert.type} alert received`,
-            variant: newAlert.priority === 1 ? "destructive" : "default",
-          });
-        }
-      })
-      .on('postgres_changes', { 
-        event: 'UPDATE', 
-        schema: 'public', 
-        table: 'alerts',
-        filter: `community_id=eq.${user.communityId}`
-      }, (payload) => {
-        console.log('Alert updated:', payload);
-        setAlerts(prev => 
-          prev.map(alert => 
-            alert.id === payload.new.id 
-              ? {
-                  ...alert,
-                  resolved: !!payload.new.resolved,
-                  resolvedBy: payload.new.resolved_by || undefined,
-                  resolvedAt: payload.new.resolved_at || undefined
-                } 
-              : alert
-          )
-        );
-      })
-      .subscribe();
+    if (user) {
+      fetchAlerts();
+    } else {
+      setAlerts([]);
+      setIsLoading(false);
+    }
 
     return () => {
-      supabase.removeChannel(alertsChannel);
       if (alertSound) {
         alertSound.pause();
         alertSound.currentTime = 0;
       }
     };
-  }, [user?.communityId]);
+  }, [user]);
 
   const activeAlerts = alerts.filter(alert => !alert.resolved);
 
@@ -163,107 +93,68 @@ export function AlertProvider({ children }: { children: ReactNode }) {
     message?: string, 
     priority: Alert['priority'] = 3
   ) => {
-    if (!user?.id || !user.communityId) {
-      toast({
-        title: "Error",
-        description: "You must be logged in and part of a community to send alerts",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!currentLocation) {
-      toast({
-        title: "Error",
-        description: "Location data is required to send an alert",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!user) return;
     
     try {
       setIsLoading(true);
       
-      const newAlertData = {
-        sender_id: user.id,
-        community_id: user.communityId,
+      // Mock creating an alert
+      // In real app, this would call Supabase
+      const newAlert: Alert = {
+        id: `alert-${Date.now()}`,
+        senderId: user.id,
+        senderName: user.fullName,
+        communityId: user.communityId || "",
         type,
-        location: {
-          latitude: currentLocation.latitude,
-          longitude: currentLocation.longitude
+        location: user.lastLocation || {
+          latitude: 37.7749,
+          longitude: -122.4194
         },
-        message: message || null,
+        message,
         priority,
-        resolved: false
+        resolved: false,
+        createdAt: new Date().toISOString()
       };
       
-      const { data, error } = await supabase
-        .from('alerts')
-        .insert(newAlertData)
-        .select()
-        .single();
+      setAlerts(prev => [newAlert, ...prev]);
       
-      if (error) throw error;
-      
-      // Play alert sound - the realtime subscription will handle updating UI
+      // Play alert sound
       playAlertSound(type);
       
-      toast({
-        title: "Alert Sent",
-        description: "Your alert has been sent to the community",
-      });
+      return;
     } catch (error) {
       console.error("Failed to create alert:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send alert. Please try again.",
-        variant: "destructive",
-      });
+      throw new Error("Failed to create alert");
     } finally {
       setIsLoading(false);
     }
   };
 
   const resolveAlert = async (alertId: string) => {
-    if (!user?.id) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to resolve alerts",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!user) return;
     
     try {
       setIsLoading(true);
       
-      const { error } = await supabase
-        .from('alerts')
-        .update({
-          resolved: true,
-          resolved_by: user.id,
-          resolved_at: new Date().toISOString()
-        })
-        .eq('id', alertId);
+      // Mock resolving an alert
+      // In real app, this would call Supabase
+      setAlerts(prev => 
+        prev.map(alert => 
+          alert.id === alertId 
+            ? { 
+                ...alert, 
+                resolved: true,
+                resolvedBy: user.id,
+                resolvedAt: new Date().toISOString()
+              } 
+            : alert
+        )
+      );
       
-      if (error) throw error;
-      
-      // The realtime subscription will handle updating the UI
-      
-      toast({
-        title: "Alert Resolved",
-        description: "The alert has been marked as resolved",
-      });
-      
-      // Stop any playing alert sounds
-      stopAlertSound();
+      return;
     } catch (error) {
       console.error("Failed to resolve alert:", error);
-      toast({
-        title: "Error",
-        description: "Failed to resolve alert. Please try again.",
-        variant: "destructive",
-      });
+      throw new Error("Failed to resolve alert");
     } finally {
       setIsLoading(false);
     }
