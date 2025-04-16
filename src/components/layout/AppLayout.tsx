@@ -1,5 +1,4 @@
-
-import { ReactNode, useEffect } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileNav from "./MobileNav";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
@@ -17,14 +16,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
   const isMobile = useIsMobile();
 
-  // Load dashboard configuration from localStorage
   useEffect(() => {
     try {
       const savedConfig = localStorage.getItem('dashboardConfig');
       if (savedConfig) {
         const config = JSON.parse(savedConfig);
         
-        // Apply theme preference if available
         if (config.theme && config.theme !== 'system') {
           document.documentElement.classList.toggle('dark', config.theme === 'dark');
         }
@@ -34,12 +31,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
     }
   }, []);
 
-  // No navigation for unauthenticated users
   if (!isAuthenticated) {
     return <main className="min-h-screen">{children}</main>;
   }
 
-  // Navigation items for both sidebar and mobile nav
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/alerts", icon: Bell, label: "Alerts" },
@@ -52,7 +47,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-secondary/5">
-        {/* Desktop Sidebar - Hidden on mobile */}
         <div className="hidden md:block">
           <Sidebar>
             <SidebarHeader>
@@ -92,19 +86,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
           </Sidebar>
         </div>
 
-        {/* Main Content */}
         <div className="flex-1 relative">
-          {/* Mobile Nav - Visible only on mobile */}
           <MobileNav />
           
-          {/* Main Content */}
           <main className="flex-1 pt-14 pb-16 min-h-screen">
             <div className="container mx-auto px-4 py-4">
               {children}
             </div>
           </main>
           
-          {/* Mobile Footer Menu - Visible only on mobile */}
           <div className="fixed bottom-0 left-0 right-0 border-t bg-background md:hidden z-10">
             <div className="flex items-center justify-around">
               {navItems.map((item) => (
@@ -119,6 +109,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
               ))}
             </div>
           </div>
+
+          <footer className="absolute bottom-0 w-full text-center p-2 text-xs text-muted-foreground bg-background/50 backdrop-blur-sm">
+            <Link 
+              to="https://waspersolution.com/community" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-primary transition-colors"
+            >
+              Developed by Wasper Solutions
+            </Link>
+          </footer>
         </div>
       </div>
     </SidebarProvider>
