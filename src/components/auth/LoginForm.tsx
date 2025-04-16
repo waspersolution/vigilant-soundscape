@@ -9,7 +9,7 @@ import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface LoginFormProps {
-  onRegisterClick: () => void;
+  onRegisterClick?: () => void; // Make this optional
 }
 
 export default function LoginForm({ onRegisterClick }: LoginFormProps) {
@@ -33,6 +33,10 @@ export default function LoginForm({ onRegisterClick }: LoginFormProps) {
       setError("Invalid email or password");
       console.error(err);
     }
+  };
+
+  const handleCommunityRegistration = () => {
+    window.open("https://waspersolution.com/community", "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -92,11 +96,11 @@ export default function LoginForm({ onRegisterClick }: LoginFormProps) {
           Don't have an account?{" "}
           <button
             type="button"
-            onClick={onRegisterClick}
+            onClick={handleCommunityRegistration}
             className="text-secondary hover:underline"
             disabled={isLoading}
           >
-            Register here
+            Register your community
           </button>
         </div>
       </CardFooter>

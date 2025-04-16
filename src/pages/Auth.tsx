@@ -1,12 +1,9 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
-import RegisterForm from "@/components/auth/RegisterForm";
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
@@ -40,11 +37,7 @@ export default function Auth() {
         <p className="text-muted-foreground">Community Security Platform</p>
       </div>
 
-      {isLogin ? (
-        <LoginForm onRegisterClick={() => setIsLogin(false)} />
-      ) : (
-        <RegisterForm onLoginClick={() => setIsLogin(true)} />
-      )}
+      <LoginForm />
     </div>
   );
 }
