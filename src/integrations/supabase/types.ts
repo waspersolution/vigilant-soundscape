@@ -9,122 +9,16 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      communities: {
-        Row: {
-          created_at: string | null
-          emergency_contacts: Json | null
-          geo_boundaries: Json | null
-          id: string
-          leader_id: string | null
-          max_members: number
-          name: string
-          subscription_plan: string
-          subscription_status: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          emergency_contacts?: Json | null
-          geo_boundaries?: Json | null
-          id?: string
-          leader_id?: string | null
-          max_members?: number
-          name: string
-          subscription_plan: string
-          subscription_status: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          emergency_contacts?: Json | null
-          geo_boundaries?: Json | null
-          id?: string
-          leader_id?: string | null
-          max_members?: number
-          name?: string
-          subscription_plan?: string
-          subscription_status?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          community_id: string | null
-          created_at: string | null
-          email: string
-          full_name: string
-          id: string
-          last_location: Json | null
-          online_status: boolean | null
-          phone: string | null
-          role: Database["public"]["Enums"]["user_role"]
-          updated_at: string | null
-        }
-        Insert: {
-          community_id?: string | null
-          created_at?: string | null
-          email: string
-          full_name: string
-          id: string
-          last_location?: Json | null
-          online_status?: boolean | null
-          phone?: string | null
-          role: Database["public"]["Enums"]["user_role"]
-          updated_at?: string | null
-        }
-        Update: {
-          community_id?: string | null
-          created_at?: string | null
-          email?: string
-          full_name?: string
-          id?: string
-          last_location?: Json | null
-          online_status?: boolean | null
-          phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_community_id_fkey"
-            columns: ["community_id"]
-            isOneToOne: false
-            referencedRelation: "communities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      create_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      is_admin_or_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_community_leader: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      user_role:
-        | "super_admin"
-        | "admin"
-        | "community_leader"
-        | "community_manager"
-        | "member"
-        | "security_personnel"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -239,15 +133,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      user_role: [
-        "super_admin",
-        "admin",
-        "community_leader",
-        "community_manager",
-        "member",
-        "security_personnel",
-      ],
-    },
+    Enums: {},
   },
 } as const
