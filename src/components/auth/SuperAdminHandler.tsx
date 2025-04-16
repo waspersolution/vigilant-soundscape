@@ -23,21 +23,30 @@ class SuperAdminHandler {
       if (signInData.user) {
         console.log("Super admin user found, logging in:", signInData.user.id);
         
-        // User exists, try to run the create_super_admin RPC
+        // User exists, try to update the profile with super_admin role using a string directly
         try {
-          const { data: rpcData, error: rpcError } = await supabase.rpc('create_super_admin');
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: signInData.user.id,
+              email: email,
+              full_name: 'Azeez Wosilat',
+              role: 'super_admin', // Using a string instead of enum
+              community_id: null
+            })
+            .select();
           
-          if (rpcError) {
-            console.error("Super admin RPC error:", rpcError);
-            toast.error(`RPC error: ${rpcError.message}`);
-            // Continue anyway as user might already be a super admin
+          if (profileError) {
+            console.error("Profile update error:", profileError);
+            toast.error(`Profile error: ${profileError.message}`);
+            // Continue anyway, as this might be a non-critical error
           } else {
-            toast.success("Super admin role applied successfully");
-            console.log("Super admin role applied successfully");
+            console.log("Profile updated successfully:", profileData);
+            toast.success("Super admin profile updated successfully");
           }
-        } catch (rpcError: any) {
-          console.error("Super admin RPC exception:", rpcError);
-          // User might already be a super admin, continue anyway
+        } catch (profileError: any) {
+          console.error("Profile update exception:", profileError);
+          // Continue anyway, as this might be a non-critical error
         }
         
         if (onSuperAdminSignup) {
@@ -50,7 +59,7 @@ class SuperAdminHandler {
       if (signInError) {
         console.log("User doesn't exist, creating super admin...", signInError);
         
-        // Manual approach to create user and profile
+        // Manual approach to create user
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -67,7 +76,30 @@ class SuperAdminHandler {
         }
         
         if (signUpData.user) {
-          await this.handleProfileCreation(signUpData.user.id, email);
+          // Create profile for the new user with super_admin role as string
+          try {
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .upsert({
+                id: signUpData.user.id,
+                email: email,
+                full_name: 'Azeez Wosilat',
+                role: 'super_admin', // Using a string instead of enum
+                community_id: null
+              })
+              .select();
+            
+            if (profileError) {
+              console.error("Profile creation error:", profileError);
+              toast.error(`Profile error: ${profileError.message}`);
+              // Continue anyway, as the auth user was created
+            } else {
+              console.log("Profile created successfully:", profileData);
+            }
+          } catch (profileError: any) {
+            console.error("Profile creation exception:", profileError);
+            // Continue anyway, as the auth user was created
+          }
           
           if (onSuperAdminSignup) {
             onSuperAdminSignup();
@@ -87,30 +119,6 @@ class SuperAdminHandler {
         onFinish();
       }
     }
-  }
-
-  private static async handleProfileCreation(userId: string, email: string) {
-    console.log("User created, checking for profile:", userId);
-    
-    // Directly try to create or update the profile
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .upsert({
-        id: userId,
-        email: email,
-        full_name: 'Azeez Wosilat',
-        role: 'super_admin',
-        community_id: null
-      })
-      .select();
-    
-    if (profileError) {
-      console.error("Profile creation/update error:", profileError);
-      toast.error("Profile error: " + profileError.message);
-      throw new Error(`Profile error: ${profileError.message}`);
-    }
-    
-    console.log("Profile created/updated successfully:", profileData);
   }
 }
 
