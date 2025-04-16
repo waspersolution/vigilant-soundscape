@@ -1,5 +1,5 @@
 
-/* Modern styling for the app */
+/* Midnight Shield Theme Styling */
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -13,7 +13,7 @@
 }
 
 .logo:hover {
-  filter: drop-shadow(0 0 2em rgba(124, 58, 237, 0.7));
+  filter: drop-shadow(0 0 2em rgba(37, 99, 235, 0.7));
 }
 
 @keyframes logo-spin {
@@ -29,4 +29,34 @@
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;
   }
+}
+
+/* Security interface styles */
+.security-panel {
+  @apply border border-border/40 rounded-lg bg-card/80 backdrop-blur-sm;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.2);
+}
+
+.security-alert {
+  @apply border-l-4 border-destructive bg-destructive/10 text-destructive-foreground p-4 rounded-r-md;
+}
+
+.security-success {
+  @apply border-l-4 border-success bg-success/10 text-success-foreground p-4 rounded-r-md;
+}
+
+.security-status-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.status-secure {
+  @apply bg-success/20 text-success-foreground;
+}
+
+.status-alert {
+  @apply bg-destructive/20 text-destructive-foreground;
+}
+
+.status-warning {
+  @apply bg-accent/20 text-accent-foreground;
 }

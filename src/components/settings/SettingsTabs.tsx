@@ -10,39 +10,39 @@ export function SettingsTabs() {
   return (
     <Tabs defaultValue="profile" className="space-y-6">
       <div className="overflow-auto">
-        <TabsList className="mb-4 flex w-full md:w-auto p-1 bg-secondary/50 backdrop-blur-sm">
-          <TabsTrigger value="profile" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-soft">
+        <TabsList className="mb-4 flex w-full md:w-auto p-1 bg-secondary/50 backdrop-blur-sm border border-border/30">
+          <TabsTrigger value="profile" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Profile</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-soft">
+          <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
             <Bell className="h-4 w-4" />
             <span className="hidden sm:inline">Notifications</span>
           </TabsTrigger>
-          <TabsTrigger value="privacy" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-soft">
+          <TabsTrigger value="privacy" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
             <ShieldAlert className="h-4 w-4" />
             <span className="hidden sm:inline">Privacy</span>
           </TabsTrigger>
-          <TabsTrigger value="dashboard" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-soft">
+          <TabsTrigger value="dashboard" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
             <Layout className="h-4 w-4" />
             <span className="hidden sm:inline">Dashboard</span>
           </TabsTrigger>
         </TabsList>
       </div>
       
-      <TabsContent value="profile" className="animate-fade-in">
+      <TabsContent value="profile" className="animate-fade-in shield-pattern">
         <ProfileSettings />
       </TabsContent>
       
-      <TabsContent value="notifications" className="animate-fade-in">
+      <TabsContent value="notifications" className="animate-fade-in shield-pattern">
         <NotificationSettings />
       </TabsContent>
       
-      <TabsContent value="privacy" className="animate-fade-in">
+      <TabsContent value="privacy" className="animate-fade-in shield-pattern">
         <PrivacySettings />
       </TabsContent>
       
-      <TabsContent value="dashboard" className="animate-fade-in">
+      <TabsContent value="dashboard" className="animate-fade-in shield-pattern">
         <DashboardSettings />
       </TabsContent>
     </Tabs>
