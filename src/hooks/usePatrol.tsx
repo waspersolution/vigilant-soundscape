@@ -85,11 +85,13 @@ export function usePatrol() {
 
     setIsLoading(true);
     try {
-      // Ensure the user object has the required fullName property
+      // Ensure the user object has all required properties for the User type
       const userWithRequiredFields = {
         ...user,
-        fullName: user.fullName || 'Unknown User', // Provide default value if fullName is undefined
-        email: user.email || '', // Add email property if needed for the User type
+        fullName: user.fullName || 'Unknown User',
+        email: user.email || '',
+        role: user.role || 'security_personnel', // Ensure role is provided as it's required
+        onlineStatus: user.onlineStatus || false
       };
       
       const createdPatrol = await createPatrol(userWithRequiredFields);

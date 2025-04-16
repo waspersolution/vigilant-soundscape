@@ -22,10 +22,10 @@ export const fetchAlerts = async (communityId: string, limit = 20, offset = 0) =
       communityId: alert.community_id,
       type: alert.type,
       location: {
-        // Safely access location properties from the Json type
-        latitude: typeof alert.location === 'object' && alert.location ? 
+        // Safely handle JSON data type for location
+        latitude: typeof alert.location === 'object' && alert.location !== null ? 
           (typeof alert.location.latitude === 'number' ? alert.location.latitude : 0) : 0,
-        longitude: typeof alert.location === 'object' && alert.location ? 
+        longitude: typeof alert.location === 'object' && alert.location !== null ? 
           (typeof alert.location.longitude === 'number' ? alert.location.longitude : 0) : 0
       },
       message: alert.message || '',
@@ -112,10 +112,10 @@ export const resolveAlert = async (alertId: string, userId: string) => {
       communityId: data.community_id,
       type: data.type,
       location: {
-        // Safely access location properties from the Json type
-        latitude: typeof data.location === 'object' && data.location ? 
+        // Safely handle JSON data type for location
+        latitude: typeof data.location === 'object' && data.location !== null ? 
           (typeof data.location.latitude === 'number' ? data.location.latitude : 0) : 0,
-        longitude: typeof data.location === 'object' && data.location ? 
+        longitude: typeof data.location === 'object' && data.location !== null ? 
           (typeof data.location.longitude === 'number' ? data.location.longitude : 0) : 0
       },
       message: data.message || '',
