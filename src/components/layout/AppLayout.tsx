@@ -1,5 +1,5 @@
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileNav from "./MobileNav";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
@@ -13,9 +13,26 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const location = useLocation();
   const isMobile = useIsMobile();
+
+  // Load dashboard configuration from localStorage
+  useEffect(() => {
+    try {
+      const savedConfig = localStorage.getItem('dashboardConfig');
+      if (savedConfig) {
+        const config = JSON.parse(savedConfig);
+        
+        // Apply theme preference if available
+        if (config.theme && config.theme !== 'system') {
+          document.documentElement.classList.toggle('dark', config.theme === 'dark');
+        }
+      }
+    } catch (error) {
+      console.error("Error loading dashboard configuration:", error);
+    }
+  }, []);
 
   // No navigation for unauthenticated users
   if (!isAuthenticated) {
@@ -65,6 +82,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <SidebarFooter>
               <div className="px-3 py-2">
                 <p className="text-xs text-muted-foreground">VigilPro v1.0</p>
+                {user && (
+                  <p className="text-xs font-medium mt-1">
+                    Logged in as {user.fullName}
+                  </p>
+                )}
               </div>
             </SidebarFooter>
           </Sidebar>
@@ -102,4 +124,3 @@ export default function AppLayout({ children }: AppLayoutProps) {
     </SidebarProvider>
   );
 }
-

@@ -1,4 +1,5 @@
 
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAlert } from "@/contexts/AlertContext";
 import { useLocation } from "@/contexts/LocationContext";
@@ -14,10 +15,43 @@ import { Shield, Radio, MapPin, Users, AlertTriangle, ArrowRight } from "lucide-
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
+interface DashboardConfig {
+  showPatrols: boolean;
+  showAlerts: boolean;
+  showMemberStatus: boolean;
+  showCommunityFeed: boolean;
+  showMap: boolean;
+  theme: string;
+  layout: string;
+}
+
+const defaultConfig: DashboardConfig = {
+  showPatrols: true,
+  showAlerts: true,
+  showMemberStatus: true,
+  showCommunityFeed: true,
+  showMap: true,
+  theme: "system",
+  layout: "default"
+};
+
 export default function Home() {
   const { user } = useAuth();
   const { activeAlerts } = useAlert();
   const { currentLocation, isTracking, startTracking } = useLocation();
+  const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>(defaultConfig);
+  
+  // Load dashboard configuration from localStorage
+  useEffect(() => {
+    try {
+      const savedConfig = localStorage.getItem('dashboardConfig');
+      if (savedConfig) {
+        setDashboardConfig(JSON.parse(savedConfig));
+      }
+    } catch (error) {
+      console.error("Error loading dashboard configuration:", error);
+    }
+  }, []);
   
   // Start location tracking if not already tracking
   if (!isTracking && user) {
@@ -96,57 +130,63 @@ export default function Home() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 ${dashboardConfig.layout === 'expanded' ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-6`}>
         {/* Left Column - Member Status */}
-        <div className="lg:col-span-1">
-          <MemberStatusList />
-        </div>
+        {dashboardConfig.showMemberStatus && (
+          <div className="lg:col-span-1">
+            <MemberStatusList />
+          </div>
+        )}
 
         {/* Right Column - Alerts and Activities */}
-        <div className="lg:col-span-2">
+        <div className={`${dashboardConfig.layout === 'expanded' || !dashboardConfig.showMemberStatus ? 'lg:col-span-3' : 'lg:col-span-2'}`}>
           {/* Active Patrols */}
-          <Card className="mb-6">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-medium">Active Patrols</CardTitle>
-              <CardDescription>Recent security patrol activity</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ActivePatrolsList />
-            </CardContent>
-          </Card>
+          {dashboardConfig.showPatrols && (
+            <Card className="mb-6">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-medium">Active Patrols</CardTitle>
+                <CardDescription>Recent security patrol activity</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ActivePatrolsList />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Recent Alerts */}
-          <Tabs defaultValue="alerts">
-            <TabsList>
-              <TabsTrigger value="alerts" className="relative">
-                Alerts
-                {activeAlerts.length > 0 && (
-                  <span className="ml-1.5 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 inline-flex items-center justify-center">
-                    {activeAlerts.length}
-                  </span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="activity">Activity Log</TabsTrigger>
-            </TabsList>
-            <TabsContent value="alerts" className="space-y-4 mt-3">
-              <ScrollArea className="h-[300px]">
-                <AlertsList />
-              </ScrollArea>
-            </TabsContent>
-            <TabsContent value="activity" className="mt-3">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="rounded-md border bg-muted/30 p-8 text-center">
-                    <Shield className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm font-medium">Community Activity</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      No recent activity to display
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          {dashboardConfig.showAlerts && (
+            <Tabs defaultValue="alerts">
+              <TabsList>
+                <TabsTrigger value="alerts" className="relative">
+                  Alerts
+                  {activeAlerts.length > 0 && (
+                    <span className="ml-1.5 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 inline-flex items-center justify-center">
+                      {activeAlerts.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="activity">Activity Log</TabsTrigger>
+              </TabsList>
+              <TabsContent value="alerts" className="space-y-4 mt-3">
+                <ScrollArea className="h-[300px]">
+                  <AlertsList />
+                </ScrollArea>
+              </TabsContent>
+              <TabsContent value="activity" className="mt-3">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="rounded-md border bg-muted/30 p-8 text-center">
+                      <Shield className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm font-medium">Community Activity</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        No recent activity to display
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          )}
         </div>
       </div>
 

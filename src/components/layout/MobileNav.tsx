@@ -1,13 +1,11 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bell, Home, Map, Shield, Settings, Menu, Users, X } from "lucide-react";
+import { Bell, Home, Map, Shield, Settings, Menu, Users, X, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  Dialog,
-  DialogContent,
-  DialogOverlay,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogOverlay } from "@/components/ui/dialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface NavItemProps {
   href: string;
@@ -38,21 +36,46 @@ const NavItem = ({ href, icon: Icon, label, active, onClick }: NavItemProps) => 
 export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
 
   // Close mobile nav when route changes
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
 
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user?.fullName) return "U";
+    
+    const nameParts = user.fullName.split(" ");
+    if (nameParts.length === 1) return nameParts[0].charAt(0).toUpperCase();
+    
+    return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+  };
+
   return (
     <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed top-4 left-4 z-40 md:hidden"
-        aria-label="Open menu"
-      >
-        <Menu className="h-6 w-6 text-primary" />
-      </button>
+      <div className="fixed top-0 left-0 right-0 h-14 bg-background border-b z-20 flex items-center justify-between px-4 md:hidden">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="md:hidden"
+          aria-label="Open menu"
+        >
+          <Menu className="h-6 w-6 text-primary" />
+        </button>
+        
+        <Link to="/" className="text-xl font-semibold text-primary">
+          VigilPro
+        </Link>
+        
+        <Link to="/settings" className="md:hidden">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-primary/10 text-primary">
+              {getUserInitials()}
+            </AvatarFallback>
+          </Avatar>
+        </Link>
+      </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogOverlay className="md:hidden" />
@@ -69,6 +92,20 @@ export default function MobileNav() {
                   <X className="h-6 w-6" />
                 </button>
               </div>
+              
+              {user && (
+                <div className="mt-4 flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      {getUserInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium text-sm">{user.fullName}</p>
+                    <p className="text-xs text-muted-foreground">{user.role}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex-1 px-4 py-6 overflow-auto">
@@ -116,6 +153,10 @@ export default function MobileNav() {
                   onClick={() => setIsOpen(false)}
                 />
               </nav>
+            </div>
+            
+            <div className="px-4 py-4 border-t">
+              <p className="text-xs text-muted-foreground">VigilPro v1.0</p>
             </div>
           </div>
         </DialogContent>
