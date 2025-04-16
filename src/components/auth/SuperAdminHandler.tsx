@@ -61,12 +61,17 @@ class SuperAdminHandler {
       if (signInError?.message === "Email not confirmed") {
         console.log("Email not confirmed, checking if user exists");
         
-        // Check if the user exists by trying to get the user by email
-        const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(email);
+        // Instead of using getUserByEmail which doesn't exist, we'll use a workaround
+        // to check if the user exists by trying to sign in with a wrong password
+        // and checking the error message
+        const { error: checkUserError } = await supabase.auth.signInWithPassword({
+          email,
+          password: password + "_wrong_password_to_check_existence"
+        });
         
-        if (userData?.user) {
-          console.log("User exists but email not confirmed. Please check your email for confirmation link");
-          toast.info("Your account exists but email is not confirmed. Please check your email for confirmation link or try again later.");
+        if (checkUserError && checkUserError.message === "Invalid login credentials") {
+          console.log("User exists but email not confirmed or password incorrect");
+          toast.info("Your account exists but email is not confirmed or password is incorrect. Please check your email for confirmation link or try again later.");
           if (onFinish) onFinish();
           return;
         }
