@@ -32,20 +32,27 @@ export const fetchAlertsForCommunity = async (communityId: string): Promise<Aler
     
     if (!data) return [];
     
-    return data.map(alert => ({
-      id: alert.id,
-      senderId: alert.sender_id,
-      senderName: alert.profiles?.full_name,
-      communityId: alert.community_id,
-      type: alert.type as Alert['type'],
-      location: alert.location,
-      message: alert.message || undefined,
-      priority: alert.priority as Alert['priority'],
-      resolved: !!alert.resolved,
-      resolvedBy: alert.resolved_by || undefined,
-      resolvedAt: alert.resolved_at || undefined,
-      createdAt: alert.created_at
-    }));
+    return data.map(alert => {
+      // Parse location if it's a string
+      const location = typeof alert.location === 'string'
+        ? JSON.parse(alert.location)
+        : alert.location;
+        
+      return {
+        id: alert.id,
+        senderId: alert.sender_id,
+        senderName: alert.profiles?.full_name,
+        communityId: alert.community_id,
+        type: alert.type as Alert['type'],
+        location: location,
+        message: alert.message || undefined,
+        priority: alert.priority as Alert['priority'],
+        resolved: !!alert.resolved,
+        resolvedBy: alert.resolved_by || undefined,
+        resolvedAt: alert.resolved_at || undefined,
+        createdAt: alert.created_at
+      };
+    });
   } catch (error) {
     console.error("Error fetching alerts:", error);
     throw error;
@@ -80,13 +87,18 @@ export const createAlert = async (
     
     if (!data) return null;
     
+    // Parse location if it's a string
+    const locationData = typeof data.location === 'string'
+      ? JSON.parse(data.location)
+      : data.location;
+    
     return {
       id: data.id,
       senderId: data.sender_id,
       senderName: data.profiles?.full_name,
       communityId: data.community_id,
       type: data.type as Alert['type'],
-      location: data.location,
+      location: locationData,
       message: data.message || undefined,
       priority: data.priority as Alert['priority'],
       resolved: !!data.resolved,
