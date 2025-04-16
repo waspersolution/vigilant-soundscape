@@ -24,65 +24,84 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+    // First check for existing session
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Session error:", error);
+          setIsLoading(false);
+          return;
+        }
+        
         if (session) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+          // User is logged in, get their profile
+          fetchUserProfile(session.user.id);
+        } else {
+          // No active session
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.error("Auth state initialization error:", err);
+        setIsLoading(false);
+      }
+    };
 
-          if (profile) {
-            setUser({
-              id: session.user.id,
-              email: profile.email,
-              fullName: profile.full_name,
-              role: profile.role,
-              communityId: profile.community_id,
-              onlineStatus: profile.online_status || false,
-              lastLocation: profile.last_location && typeof profile.last_location === 'object' ? {
-                latitude: Number((profile.last_location as any).latitude),
-                longitude: Number((profile.last_location as any).longitude),
-                timestamp: String((profile.last_location as any).timestamp)
-              } : undefined
-            });
-          }
+    // Function to fetch user profile data
+    const fetchUserProfile = async (userId: string) => {
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (error) {
+          console.error("Profile fetch error:", error);
+          setIsLoading(false);
+          return;
+        }
+
+        if (profile) {
+          setUser({
+            id: userId,
+            email: profile.email,
+            fullName: profile.full_name,
+            role: profile.role,
+            communityId: profile.community_id,
+            onlineStatus: profile.online_status || false,
+            lastLocation: profile.last_location && typeof profile.last_location === 'object' ? {
+              latitude: Number((profile.last_location as any).latitude),
+              longitude: Number((profile.last_location as any).longitude),
+              timestamp: String((profile.last_location as any).timestamp)
+            } : undefined
+          });
+        }
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Profile fetch exception:", err);
+        setIsLoading(false);
+      }
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session) {
+          // Don't use async directly in the callback, fetch profile with delay
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
+          }, 0);
         } else {
           setUser(null);
+          setIsLoading(false);
         }
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data: profile, error }) => {
-            if (profile) {
-              setUser({
-                id: session.user.id,
-                email: profile.email,
-                fullName: profile.full_name,
-                role: profile.role,
-                communityId: profile.community_id,
-                onlineStatus: profile.online_status || false,
-                lastLocation: profile.last_location && typeof profile.last_location === 'object' ? {
-                  latitude: Number((profile.last_location as any).latitude),
-                  longitude: Number((profile.last_location as any).longitude),
-                  timestamp: String((profile.last_location as any).timestamp)
-                } : undefined
-              });
-            }
-            setIsLoading(false);
-          });
-      } else {
-        setIsLoading(false);
-      }
-    });
+    // Initial session check
+    checkSession();
 
     return () => {
       subscription.unsubscribe();

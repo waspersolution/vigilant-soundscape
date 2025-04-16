@@ -10,9 +10,9 @@ export default function Index() {
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated) {
-        navigate("/");
+        navigate("/", { replace: true });
       } else {
-        navigate("/auth");
+        navigate("/auth", { replace: true });
       }
     }
   }, [isAuthenticated, isLoading, navigate]);

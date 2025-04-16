@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -16,6 +15,7 @@ import Map from "@/pages/Map";
 import Patrol from "@/pages/Patrol";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
+import Index from "@/pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +64,7 @@ const App = () => {
         <AuthProvider>
           <BrowserRouter>
             <Routes>
+              <Route path="/index" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route
                 path="/*"
