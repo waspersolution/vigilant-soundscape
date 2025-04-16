@@ -2,7 +2,7 @@
 import { ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileNav from "./MobileNav";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Bell, Home, Map, Shield, Settings, Users } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -34,12 +34,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-muted/30">
+      <div className="flex min-h-screen bg-secondary/5">
         {/* Desktop Sidebar - Hidden on mobile */}
         <div className="hidden md:block">
           <Sidebar>
             <SidebarHeader>
-              <Link to="/" className="text-xl font-semibold">
+              <Link to="/" className="text-xl font-semibold text-primary">
                 Guardian App
               </Link>
             </SidebarHeader>
@@ -62,6 +62,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 </SidebarGroupContent>
               </SidebarGroup>
             </SidebarContent>
+            <SidebarFooter>
+              <div className="px-3 py-2">
+                <p className="text-xs text-muted-foreground">Guardian App v1.0</p>
+              </div>
+            </SidebarFooter>
           </Sidebar>
         </div>
 
@@ -76,6 +81,22 @@ export default function AppLayout({ children }: AppLayoutProps) {
               {children}
             </div>
           </main>
+          
+          {/* Mobile Footer Menu - Visible only on mobile */}
+          <div className="fixed bottom-0 left-0 right-0 border-t bg-background md:hidden z-10">
+            <div className="flex items-center justify-around">
+              {navItems.map((item) => (
+                <Link 
+                  key={item.label}
+                  to={item.href} 
+                  className={`flex flex-col items-center p-3 ${location.pathname === item.href ? 'text-primary' : 'text-muted-foreground'}`}
+                >
+                  <item.icon className="h-5 w-5 mb-1" />
+                  <span className="text-xs">{item.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </SidebarProvider>

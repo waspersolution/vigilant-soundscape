@@ -1,4 +1,3 @@
-
 import { Fragment, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Bell, Home, Map, Shield, Settings, Menu, Users, X } from "lucide-react";
@@ -51,16 +50,16 @@ export default function MobileNav() {
         className="fixed top-4 left-4 z-40 md:hidden"
         aria-label="Open menu"
       >
-        <Menu className="h-6 w-6" />
+        <Menu className="h-6 w-6 text-primary" />
       </button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogOverlay className="md:hidden" />
         <DialogContent className="fixed inset-y-0 left-0 p-0 border-r max-w-[75%] md:hidden rounded-none data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left">
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full bg-background">
             <div className="px-4 py-6 border-b">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">Guardian App</h2>
+                <h2 className="text-xl font-bold text-primary">Guardian App</h2>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-1 rounded-full hover:bg-muted"
