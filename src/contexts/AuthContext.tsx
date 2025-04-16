@@ -1,6 +1,8 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { User } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/sonner";
 
 interface AuthContextType {
   user: User | null;
@@ -8,7 +10,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, fullName: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,51 +20,83 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored auth data
-    const checkAuth = async () => {
-      try {
-        // This would be replaced with actual Supabase auth
-        const storedUser = localStorage.getItem("vigilpro-user");
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          // Fetch the user's profile to get role information
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profile) {
+            setUser({
+              id: session.user.id,
+              email: profile.email,
+              fullName: profile.full_name,
+              role: profile.role,
+              communityId: profile.community_id,
+              onlineStatus: profile.online_status,
+              lastLocation: profile.last_location
+            });
+          }
+        } else {
+          setUser(null);
         }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-      } finally {
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        // Fetch the user's profile
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data: profile, error }) => {
+            if (profile) {
+              setUser({
+                id: session.user.id,
+                email: profile.email,
+                fullName: profile.full_name,
+                role: profile.role,
+                communityId: profile.community_id,
+                onlineStatus: profile.online_status,
+                lastLocation: profile.last_location
+              });
+            }
+            setIsLoading(false);
+          });
+      } else {
         setIsLoading(false);
       }
-    };
+    });
 
-    checkAuth();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Mock login for now - would be replaced with Supabase auth
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Demo user
-      const demoUser: User = {
-        id: "user-123",
-        fullName: "John Doe",
-        email: email,
-        role: "community_manager",
-        communityId: "comm-123",
-        onlineStatus: true,
-        lastLocation: {
-          latitude: 37.7749,
-          longitude: -122.4194,
-          timestamp: new Date().toISOString()
-        }
-      };
-      
-      setUser(demoUser);
-      localStorage.setItem("vigilpro-user", JSON.stringify(demoUser));
-    } catch (error) {
-      console.error("Login failed:", error);
-      throw new Error("Invalid credentials");
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Login successful");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to login");
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -71,24 +105,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (email: string, password: string, fullName: string) => {
     setIsLoading(true);
     try {
-      // Mock registration - would be replaced with Supabase auth
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Pretend registration is successful but user needs to be confirmed
-      // In real app, this would send confirmation email via Supabase
-      setUser(null);
-    } catch (error) {
-      console.error("Registration failed:", error);
-      throw new Error("Registration failed");
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName
+          }
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Registration successful. Please check your email for confirmation.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to register");
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    // Clear auth data
-    setUser(null);
-    localStorage.removeItem("vigilpro-user");
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
+      setUser(null);
+      toast.success("Logged out successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to logout");
+    }
   };
 
   return (
