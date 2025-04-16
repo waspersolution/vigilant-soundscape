@@ -3,7 +3,7 @@ export interface User {
   id: string;
   fullName: string;
   email: string;
-  role: 'super_admin' | 'community_leader' | 'community_manager' | 'member' | 'security_personnel';
+  role: 'super_admin' | 'admin' | 'community_leader' | 'community_manager' | 'member' | 'security_personnel';
   communityId?: string;
   onlineStatus: boolean;
   lastLocation?: {

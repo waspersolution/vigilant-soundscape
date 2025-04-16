@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { User } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,8 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               fullName: profile.full_name,
               role: profile.role,
               communityId: profile.community_id,
-              onlineStatus: profile.online_status,
-              lastLocation: profile.last_location
+              onlineStatus: profile.online_status || false,
+              lastLocation: profile.last_location ? {
+                latitude: profile.last_location.latitude,
+                longitude: profile.last_location.longitude,
+                timestamp: profile.last_location.timestamp
+              } : undefined
             });
           }
         } else {
@@ -60,8 +65,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 fullName: profile.full_name,
                 role: profile.role,
                 communityId: profile.community_id,
-                onlineStatus: profile.online_status,
-                lastLocation: profile.last_location
+                onlineStatus: profile.online_status || false,
+                lastLocation: profile.last_location ? {
+                  latitude: profile.last_location.latitude,
+                  longitude: profile.last_location.longitude,
+                  timestamp: profile.last_location.timestamp
+                } : undefined
               });
             }
             setIsLoading(false);
