@@ -5,8 +5,9 @@ import { Alert } from "@/types";
 // Enable realtime for the alerts table
 export const enableRealtimeForAlerts = async () => {
   try {
+    // Fix the parameter typing issue
     const { error } = await supabase.rpc('enable_realtime_for_table', {
-      table_name: 'alerts'
+      table_name: 'alerts' as any
     });
     
     if (error) {
@@ -22,9 +23,13 @@ export const enableRealtimeForAlerts = async () => {
 // Fetch alerts for a community
 export const fetchAlertsForCommunity = async (communityId: string): Promise<Alert[]> => {
   try {
+    // Fix join query to avoid ambiguity
     const { data, error } = await supabase
       .from('alerts')
-      .select('*, sender:sender_id(full_name)')
+      .select(`
+        *,
+        sender:profiles!alerts_sender_id_fkey(full_name)
+      `)
       .eq('community_id', communityId)
       .order('created_at', { ascending: false });
       
@@ -44,7 +49,10 @@ export const fetchAlertsForCommunity = async (communityId: string): Promise<Aler
         senderName: alert.sender?.full_name,
         communityId: alert.community_id,
         type: alert.type as Alert['type'],
-        location: location as Alert['location'],
+        location: {
+          latitude: location?.latitude || 0,
+          longitude: location?.longitude || 0
+        },
         message: alert.message || undefined,
         priority: alert.priority as Alert['priority'],
         resolved: !!alert.resolved,
@@ -69,6 +77,7 @@ export const createAlert = async (
   priority: Alert['priority']
 ): Promise<Alert | null> => {
   try {
+    // Fix join query to avoid ambiguity
     const { data, error } = await supabase
       .from('alerts')
       .insert({
@@ -80,7 +89,10 @@ export const createAlert = async (
         priority,
         resolved: false
       })
-      .select('*, sender:sender_id(full_name)')
+      .select(`
+        *,
+        sender:profiles!alerts_sender_id_fkey(full_name)
+      `)
       .single();
       
     if (error) throw error;
@@ -98,7 +110,10 @@ export const createAlert = async (
       senderName: data.sender?.full_name,
       communityId: data.community_id,
       type: data.type as Alert['type'],
-      location: locationData as Alert['location'],
+      location: {
+        latitude: locationData?.latitude || 0,
+        longitude: locationData?.longitude || 0
+      },
       message: data.message || undefined,
       priority: data.priority as Alert['priority'],
       resolved: !!data.resolved,

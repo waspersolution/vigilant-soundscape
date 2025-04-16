@@ -1,7 +1,6 @@
 
 import { useState } from "react";
-import { Alert } from "@/types";
-import { User } from "@/types";
+import { Alert, User } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { playAlertSound, stopAlertSound } from "./alertUtils";
@@ -21,9 +20,13 @@ export function useAlertOperations(user: User | null) {
 
     try {
       setIsLoading(true);
+      // Use separate subquery to get sender name to avoid ambiguity
       const { data, error } = await supabase
         .from('alerts')
-        .select('*, sender:sender_id(full_name)')
+        .select(`
+          *,
+          sender:profiles!alerts_sender_id_fkey(full_name)
+        `)
         .eq('community_id', user.communityId)
         .order('created_at', { ascending: false });
 
@@ -41,7 +44,10 @@ export function useAlertOperations(user: User | null) {
             senderName: alert.sender?.full_name,
             communityId: alert.community_id,
             type: alert.type as Alert['type'],
-            location: location as Alert['location'],
+            location: {
+              latitude: location?.latitude || 0,
+              longitude: location?.longitude || 0
+            },
             message: alert.message || undefined,
             priority: alert.priority as Alert['priority'],
             resolved: !!alert.resolved,

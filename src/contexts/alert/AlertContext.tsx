@@ -15,9 +15,13 @@ export function AlertProvider({ children }: { children: ReactNode }) {
   
   // Ensure user has required fields or provide defaults
   const safeUser = user ? {
-    ...user,
+    id: user.id,
     fullName: user.fullName || "Unknown User",
-    onlineStatus: user.onlineStatus ?? false
+    email: user.email || "",  // Add email with default
+    role: user.role,
+    communityId: user.communityId,
+    onlineStatus: user.onlineStatus ?? false,
+    lastLocation: user.lastLocation
   } : null;
   
   const {

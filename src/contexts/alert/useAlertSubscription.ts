@@ -1,7 +1,6 @@
 
 import { useEffect } from "react";
-import { Alert } from "@/types";
-import { User } from "@/types";
+import { Alert, User } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -26,7 +25,7 @@ export function useAlertSubscription(
       }, async (payload) => {
         console.log('New alert received:', payload);
         
-        // Fetch the sender name
+        // Fetch the sender name with proper column aliasing
         const { data: senderData } = await supabase
           .from('profiles')
           .select('full_name')
@@ -41,10 +40,13 @@ export function useAlertSubscription(
         const newAlert: Alert = {
           id: payload.new.id,
           senderId: payload.new.sender_id,
-          senderName: senderData?.full_name,
+          senderName: senderData?.full_name || undefined,
           communityId: payload.new.community_id,
           type: payload.new.type as Alert['type'],
-          location: location as Alert['location'],
+          location: {
+            latitude: location?.latitude || 0,
+            longitude: location?.longitude || 0
+          },
           message: payload.new.message || undefined,
           priority: payload.new.priority as Alert['priority'],
           resolved: !!payload.new.resolved,
