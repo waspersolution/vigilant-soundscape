@@ -4,7 +4,6 @@ import { Alert } from "@/types";
 import { User } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { playAlertSound } from "./alertUtils";
 
 export function useAlertSubscription(
   user: User | null,
@@ -45,7 +44,7 @@ export function useAlertSubscription(
           senderName: senderData?.full_name,
           communityId: payload.new.community_id,
           type: payload.new.type as Alert['type'],
-          location: location,
+          location: location as Alert['location'],
           message: payload.new.message || undefined,
           priority: payload.new.priority as Alert['priority'],
           resolved: !!payload.new.resolved,

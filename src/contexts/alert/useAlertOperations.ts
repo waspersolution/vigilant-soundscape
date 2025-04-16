@@ -23,29 +23,33 @@ export function useAlertOperations(user: User | null) {
       setIsLoading(true);
       const { data, error } = await supabase
         .from('alerts')
-        .select('*, profiles:sender_id(full_name)')
+        .select('*, sender:sender_id(full_name)')
         .eq('community_id', user.communityId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       if (data) {
-        const formattedAlerts: Alert[] = data.map(alert => ({
-          id: alert.id,
-          senderId: alert.sender_id,
-          senderName: alert.profiles?.full_name,
-          communityId: alert.community_id,
-          type: alert.type as Alert['type'],
-          location: typeof alert.location === 'string'
+        const formattedAlerts: Alert[] = data.map(alert => {
+          const location = typeof alert.location === 'string'
             ? JSON.parse(alert.location)
-            : alert.location,
-          message: alert.message || undefined,
-          priority: alert.priority as Alert['priority'],
-          resolved: !!alert.resolved,
-          resolvedBy: alert.resolved_by || undefined,
-          resolvedAt: alert.resolved_at || undefined,
-          createdAt: alert.created_at
-        }));
+            : alert.location;
+            
+          return {
+            id: alert.id,
+            senderId: alert.sender_id,
+            senderName: alert.sender?.full_name,
+            communityId: alert.community_id,
+            type: alert.type as Alert['type'],
+            location: location as Alert['location'],
+            message: alert.message || undefined,
+            priority: alert.priority as Alert['priority'],
+            resolved: !!alert.resolved,
+            resolvedBy: alert.resolved_by || undefined,
+            resolvedAt: alert.resolved_at || undefined,
+            createdAt: alert.created_at
+          };
+        });
         setAlerts(formattedAlerts);
       }
     } catch (error) {

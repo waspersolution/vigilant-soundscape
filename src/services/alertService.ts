@@ -24,7 +24,7 @@ export const fetchAlertsForCommunity = async (communityId: string): Promise<Aler
   try {
     const { data, error } = await supabase
       .from('alerts')
-      .select('*, profiles:sender_id(full_name)')
+      .select('*, sender:sender_id(full_name)')
       .eq('community_id', communityId)
       .order('created_at', { ascending: false });
       
@@ -41,10 +41,10 @@ export const fetchAlertsForCommunity = async (communityId: string): Promise<Aler
       return {
         id: alert.id,
         senderId: alert.sender_id,
-        senderName: alert.profiles?.full_name,
+        senderName: alert.sender?.full_name,
         communityId: alert.community_id,
         type: alert.type as Alert['type'],
-        location: location,
+        location: location as Alert['location'],
         message: alert.message || undefined,
         priority: alert.priority as Alert['priority'],
         resolved: !!alert.resolved,
@@ -80,7 +80,7 @@ export const createAlert = async (
         priority,
         resolved: false
       })
-      .select('*, profiles:sender_id(full_name)')
+      .select('*, sender:sender_id(full_name)')
       .single();
       
     if (error) throw error;
@@ -95,10 +95,10 @@ export const createAlert = async (
     return {
       id: data.id,
       senderId: data.sender_id,
-      senderName: data.profiles?.full_name,
+      senderName: data.sender?.full_name,
       communityId: data.community_id,
       type: data.type as Alert['type'],
-      location: locationData,
+      location: locationData as Alert['location'],
       message: data.message || undefined,
       priority: data.priority as Alert['priority'],
       resolved: !!data.resolved,

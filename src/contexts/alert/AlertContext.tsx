@@ -13,6 +13,13 @@ export function AlertProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { currentLocation } = useLocation();
   
+  // Ensure user has required fields or provide defaults
+  const safeUser = user ? {
+    ...user,
+    fullName: user.fullName || "Unknown User",
+    onlineStatus: user.onlineStatus ?? false
+  } : null;
+  
   const {
     alerts,
     setAlerts,
@@ -22,10 +29,10 @@ export function AlertProvider({ children }: { children: ReactNode }) {
     resolveAlert,
     playSound,
     stopSound
-  } = useAlertOperations(user);
+  } = useAlertOperations(safeUser);
   
   // Set up realtime subscription
-  useAlertSubscription(user, setAlerts, playSound);
+  useAlertSubscription(safeUser, setAlerts, playSound);
   
   // Compute active alerts (not resolved)
   const activeAlerts = alerts.filter(alert => !alert.resolved);
