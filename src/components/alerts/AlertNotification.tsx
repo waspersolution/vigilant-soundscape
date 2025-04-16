@@ -1,74 +1,70 @@
 
-import React, { useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, Bell, Siren, Radio, Info } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 import { useAlert } from "@/contexts/AlertContext";
+import { useToast } from "@/hooks/use-toast";
+import { Alert, Bell, BellRing } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Alert as AlertType } from "@/types";
 
-interface AlertNotificationProps {
-  alert: AlertType;
-  onClose: () => void;
-}
+export function AlertNotification() {
+  const { activeAlerts } = useAlert();
+  const { toast } = useToast();
 
-export default function AlertNotification({ alert, onClose }: AlertNotificationProps) {
+  // Show notification when a new high-priority alert comes in
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose();
-    }, 8000); // Close after 8 seconds
+    const highPriorityAlerts = activeAlerts.filter(a => a.priority <= 2);
+    
+    if (highPriorityAlerts.length > 0) {
+      // Sort by creation time to get the newest alert
+      const newestAlert = [...highPriorityAlerts].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )[0];
+      
+      // Only show toast for alerts created in the last 10 seconds
+      const tenSecondsAgo = new Date(Date.now() - 10000);
+      if (new Date(newestAlert.createdAt) > tenSecondsAgo) {
+        const icon = getAlertIcon(newestAlert);
+        
+        toast({
+          title: getAlertTitle(newestAlert),
+          description: newestAlert.message || `Alert from ${newestAlert.senderName || 'Unknown'}`,
+          variant: newestAlert.priority === 1 ? "destructive" : "default",
+          duration: newestAlert.priority === 1 ? 10000 : 5000,
+        });
+      }
+    }
+  }, [activeAlerts]);
 
-    return () => clearTimeout(timer);
-  }, [onClose]);
+  // Helper functions to get alert display info
+  const getAlertTitle = (alert: AlertType): string => {
+    switch (alert.type) {
+      case 'panic':
+        return 'PANIC ALERT!';
+      case 'emergency':
+        return 'Emergency Alert';
+      case 'patrol_stop':
+        return 'Patrol Notification';
+      case 'system':
+        return 'System Alert';
+      default:
+        return 'Alert';
+    }
+  };
 
-  const getAlertIcon = (type: AlertType["type"], priority: AlertType["priority"]) => {
-    switch (type) {
-      case "panic":
-        return <AlertTriangle className="h-5 w-5 text-destructive" />;
-      case "emergency":
-        return <Siren className="h-5 w-5 text-destructive" />;
-      case "patrol_stop":
-        return <Radio className="h-5 w-5 text-blue-500" />;
-      case "system":
-        return <Info className="h-5 w-5 text-primary" />;
+  const getAlertIcon = (alert: AlertType) => {
+    switch (alert.type) {
+      case 'panic':
+        return <AlertCircle className="h-5 w-5 text-destructive" />;
+      case 'emergency':
+        return <Alert className="h-5 w-5 text-destructive" />;
+      case 'patrol_stop':
+        return <Bell className="h-5 w-5 text-blue-500" />;
+      case 'system':
+        return <BellRing className="h-5 w-5" />;
       default:
         return <Bell className="h-5 w-5" />;
     }
   };
 
-  return (
-    <Card className={cn(
-      "w-full shadow-lg animate-in fade-in slide-in-from-top-5 duration-300",
-      alert.priority === 1 
-        ? "border-destructive" 
-        : alert.priority === 2 
-          ? "border-amber-500" 
-          : "border-blue-500"
-    )}>
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <div className={cn(
-            "p-2 rounded-full",
-            alert.priority === 1 
-              ? "bg-destructive/10" 
-              : alert.priority === 2 
-                ? "bg-amber-500/10" 
-                : "bg-blue-500/10"
-          )}>
-            {getAlertIcon(alert.type, alert.priority)}
-          </div>
-          <div className="flex-1">
-            <h3 className="font-medium">
-              {alert.type === "panic" ? "Panic Alert" : 
-               alert.type === "emergency" ? "Emergency" : 
-               alert.type === "patrol_stop" ? "Patrol Notice" : 
-               "System Alert"}
-            </h3>
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {alert.message || "No details provided"}
-            </p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  return null; // This component doesn't render anything visible - it just shows toasts
 }

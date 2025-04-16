@@ -37,7 +37,7 @@ export function usePatrol() {
       if (activeData) {
         setActivePatrol({
           ...activeData,
-          guardName: user.fullName
+          guardName: user.fullName || 'Unknown' // Add fallback value in case fullName is undefined
         });
       } else {
         setActivePatrol(null);
@@ -48,7 +48,7 @@ export function usePatrol() {
       if (pastData.length > 0) {
         setPastPatrols(pastData.map(patrol => ({
           ...patrol,
-          guardName: user.fullName
+          guardName: user.fullName || 'Unknown' // Add fallback value in case fullName is undefined
         })));
       }
     } catch (error) {
@@ -85,16 +85,18 @@ export function usePatrol() {
 
     setIsLoading(true);
     try {
-      // Ensure the user object has all required properties for the User type
-      const userWithRequiredFields = {
-        ...user,
-        fullName: user.fullName || 'Unknown User',
+      // Make sure the user object has all the required properties for the User type
+      const userForPatrol = {
+        id: user.id,
+        fullName: user.fullName || 'Unknown', // Add fallback value in case fullName is undefined
         email: user.email || '',
-        role: user.role || 'security_personnel', // Ensure role is provided as it's required
-        onlineStatus: user.onlineStatus || false
+        role: user.role || 'member',
+        communityId: user.communityId || '',
+        onlineStatus: user.onlineStatus || false,
+        lastLocation: user.lastLocation
       };
       
-      const createdPatrol = await createPatrol(userWithRequiredFields);
+      const createdPatrol = await createPatrol(userForPatrol);
       if (createdPatrol) {
         setActivePatrol(createdPatrol);
         

@@ -2,131 +2,119 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Alert } from "@/types";
 
-// Fetch alerts with pagination
-export const fetchAlerts = async (communityId: string, limit = 20, offset = 0) => {
+// Enable realtime for the alerts table
+export const enableRealtimeForAlerts = async () => {
+  try {
+    const { error } = await supabase.rpc('enable_realtime_for_table', {
+      table_name: 'alerts'
+    });
+    
+    if (error) {
+      console.error("Error enabling realtime for alerts:", error);
+    } else {
+      console.log("Successfully enabled realtime for alerts table");
+    }
+  } catch (error) {
+    console.error("Failed to enable realtime:", error);
+  }
+};
+
+// Fetch alerts for a community
+export const fetchAlertsForCommunity = async (communityId: string): Promise<Alert[]> => {
   try {
     const { data, error } = await supabase
       .from('alerts')
-      .select('*, sender:profiles(*)')
+      .select('*, profiles:sender_id(full_name)')
       .eq('community_id', communityId)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-
+      .order('created_at', { ascending: false });
+      
     if (error) throw error;
-
-    // Map database response to our Alert type
+    
+    if (!data) return [];
+    
     return data.map(alert => ({
       id: alert.id,
       senderId: alert.sender_id,
-      senderName: alert.sender?.full_name || 'Unknown User',
+      senderName: alert.profiles?.full_name,
       communityId: alert.community_id,
-      type: alert.type,
-      location: {
-        // Safely handle JSON data type for location
-        latitude: typeof alert.location === 'object' && alert.location !== null ? 
-          (typeof alert.location.latitude === 'number' ? alert.location.latitude : 0) : 0,
-        longitude: typeof alert.location === 'object' && alert.location !== null ? 
-          (typeof alert.location.longitude === 'number' ? alert.location.longitude : 0) : 0
-      },
-      message: alert.message || '',
-      priority: alert.priority,
-      resolved: alert.resolved,
+      type: alert.type as Alert['type'],
+      location: alert.location,
+      message: alert.message || undefined,
+      priority: alert.priority as Alert['priority'],
+      resolved: !!alert.resolved,
       resolvedBy: alert.resolved_by || undefined,
       resolvedAt: alert.resolved_at || undefined,
       createdAt: alert.created_at
-    })) as Alert[];
+    }));
   } catch (error) {
-    console.error('Error fetching alerts:', error);
+    console.error("Error fetching alerts:", error);
     throw error;
   }
 };
 
 // Create a new alert
-export const createAlert = async (alert: {
-  senderId: string;
-  senderName: string;
-  communityId: string;
-  type: Alert['type'];
-  location: { latitude: number; longitude: number };
-  message?: string;
-  priority: Alert['priority'];
-}) => {
+export const createAlert = async (
+  senderId: string,
+  communityId: string,
+  type: Alert['type'],
+  location: { latitude: number; longitude: number },
+  message: string | null,
+  priority: Alert['priority']
+): Promise<Alert | null> => {
   try {
     const { data, error } = await supabase
       .from('alerts')
       .insert({
-        sender_id: alert.senderId,
-        community_id: alert.communityId,
-        type: alert.type,
-        location: alert.location,
-        message: alert.message,
-        priority: alert.priority,
-        resolved: false,
-        created_at: new Date().toISOString()
+        sender_id: senderId,
+        community_id: communityId,
+        type,
+        location,
+        message,
+        priority,
+        resolved: false
       })
-      .select('*, sender:profiles(*)')
+      .select('*, profiles:sender_id(full_name)')
       .single();
-
+      
     if (error) throw error;
-
+    
+    if (!data) return null;
+    
     return {
       id: data.id,
       senderId: data.sender_id,
-      senderName: data.sender?.full_name || alert.senderName || 'Unknown User',
+      senderName: data.profiles?.full_name,
       communityId: data.community_id,
-      type: data.type,
+      type: data.type as Alert['type'],
       location: data.location,
-      message: data.message || '',
-      priority: data.priority,
-      resolved: data.resolved,
+      message: data.message || undefined,
+      priority: data.priority as Alert['priority'],
+      resolved: !!data.resolved,
+      resolvedBy: data.resolved_by || undefined,
+      resolvedAt: data.resolved_at || undefined,
       createdAt: data.created_at
-    } as Alert;
+    };
   } catch (error) {
-    console.error('Error creating alert:', error);
+    console.error("Error creating alert:", error);
     throw error;
   }
 };
 
 // Resolve an alert
-export const resolveAlert = async (alertId: string, userId: string) => {
+export const resolveAlert = async (alertId: string, userId: string): Promise<void> => {
   try {
-    const resolvedAt = new Date().toISOString();
-    
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('alerts')
       .update({
         resolved: true,
         resolved_by: userId,
-        resolved_at: resolvedAt
+        resolved_at: new Date().toISOString()
       })
-      .eq('id', alertId)
-      .select('*, sender:profiles(*)')
-      .single();
-
+      .eq('id', alertId);
+      
     if (error) throw error;
-
-    return {
-      id: data.id,
-      senderId: data.sender_id,
-      senderName: data.sender?.full_name || 'Unknown User',
-      communityId: data.community_id,
-      type: data.type,
-      location: {
-        // Safely handle JSON data type for location
-        latitude: typeof data.location === 'object' && data.location !== null ? 
-          (typeof data.location.latitude === 'number' ? data.location.latitude : 0) : 0,
-        longitude: typeof data.location === 'object' && data.location !== null ? 
-          (typeof data.location.longitude === 'number' ? data.location.longitude : 0) : 0
-      },
-      message: data.message || '',
-      priority: data.priority,
-      resolved: data.resolved,
-      resolvedBy: data.resolved_by,
-      resolvedAt: data.resolved_at,
-      createdAt: data.created_at
-    } as Alert;
   } catch (error) {
-    console.error('Error resolving alert:', error);
+    console.error("Error resolving alert:", error);
     throw error;
   }
 };
