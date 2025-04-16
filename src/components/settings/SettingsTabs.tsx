@@ -8,41 +8,41 @@ import { Bell, Layout, ShieldAlert, User } from "lucide-react";
 
 export function SettingsTabs() {
   return (
-    <Tabs defaultValue="profile" className="space-y-4">
+    <Tabs defaultValue="profile" className="space-y-6">
       <div className="overflow-auto">
-        <TabsList className="mb-4 flex w-full md:w-auto">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
+        <TabsList className="mb-4 flex w-full md:w-auto p-1 bg-secondary/50 backdrop-blur-sm">
+          <TabsTrigger value="profile" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-soft">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Profile</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
+          <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-soft">
             <Bell className="h-4 w-4" />
             <span className="hidden sm:inline">Notifications</span>
           </TabsTrigger>
-          <TabsTrigger value="privacy" className="flex items-center gap-2">
+          <TabsTrigger value="privacy" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-soft">
             <ShieldAlert className="h-4 w-4" />
             <span className="hidden sm:inline">Privacy</span>
           </TabsTrigger>
-          <TabsTrigger value="dashboard" className="flex items-center gap-2">
+          <TabsTrigger value="dashboard" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-soft">
             <Layout className="h-4 w-4" />
             <span className="hidden sm:inline">Dashboard</span>
           </TabsTrigger>
         </TabsList>
       </div>
       
-      <TabsContent value="profile">
+      <TabsContent value="profile" className="animate-fade-in">
         <ProfileSettings />
       </TabsContent>
       
-      <TabsContent value="notifications">
+      <TabsContent value="notifications" className="animate-fade-in">
         <NotificationSettings />
       </TabsContent>
       
-      <TabsContent value="privacy">
+      <TabsContent value="privacy" className="animate-fade-in">
         <PrivacySettings />
       </TabsContent>
       
-      <TabsContent value="dashboard">
+      <TabsContent value="dashboard" className="animate-fade-in">
         <DashboardSettings />
       </TabsContent>
     </Tabs>

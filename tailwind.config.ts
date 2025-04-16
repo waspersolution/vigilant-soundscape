@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -68,6 +69,11 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
+			boxShadow: {
+				'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+				'card': '0 8px 30px rgba(0, 0, 0, 0.08)',
+				'glow': '0 0 20px rgba(124, 58, 237, 0.3)'
+			},
 			keyframes: {
 				'accordion-down': {
 					from: {
@@ -120,6 +126,14 @@ export default {
 						transform: 'scale(2)',
 						opacity: '0'
 					}
+				},
+				'shimmer': {
+					'0%': { backgroundPosition: '-500px 0' },
+					'100%': { backgroundPosition: '500px 0' }
+				},
+				'fade-in': {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' }
 				}
 			},
 			animation: {
@@ -128,7 +142,13 @@ export default {
 				'pulse-alert': 'pulse-alert 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 				'flash-alert': 'flash-alert 1s ease-in-out infinite',
 				'slide-in-bottom': 'slide-in-bottom 0.5s ease-out',
-				'ping-location': 'ping-location 1s cubic-bezier(0, 0, 0.2, 1) infinite'
+				'ping-location': 'ping-location 1s cubic-bezier(0, 0, 0.2, 1) infinite',
+				'shimmer': 'shimmer 2s infinite linear',
+				'fade-in': 'fade-in 0.5s ease-out'
+			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(circle, var(--tw-gradient-stops))',
+				'gradient-shimmer': 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 75%)'
 			}
 		}
 	},
