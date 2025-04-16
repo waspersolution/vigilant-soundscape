@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useAlert } from "@/contexts/AlertContext";
 import { useLocation } from "@/contexts/LocationContext";
@@ -8,6 +9,7 @@ import AlertsList from "@/components/alerts/AlertsList";
 import EmergencyButton from "@/components/alerts/EmergencyButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MemberStatusList from "@/components/dashboard/MemberStatusList";
+import ActivePatrolsList from "@/components/dashboard/ActivePatrolsList";
 import { Shield, Radio, MapPin, Users, AlertTriangle, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -109,16 +111,7 @@ export default function Home() {
               <CardDescription>Recent security patrol activity</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border bg-muted/30 p-8 text-center">
-                <Radio className="h-10 w-10 text-muted-foreground mb-2" />
-                <p className="text-sm font-medium">No active patrols</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  All patrol guards are currently off-duty
-                </p>
-                <Button variant="outline" className="mt-4">
-                  View Patrol Schedule
-                </Button>
-              </div>
+              <ActivePatrolsList />
             </CardContent>
           </Card>
 

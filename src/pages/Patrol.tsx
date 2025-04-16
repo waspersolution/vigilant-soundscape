@@ -1,27 +1,50 @@
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MapPin, Clock, Check, PlayCircle, StopCircle, User, Radio } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { MapPin, Clock, Check, PlayCircle, StopCircle, User, Radio, Calendar, Shield, AlertTriangle } from "lucide-react";
 import { useLocation } from "@/contexts/LocationContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePatrol } from "@/hooks/usePatrol";
 import EmergencyButton from "@/components/alerts/EmergencyButton";
-import { formatDistance, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format, parseISO } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export default function Patrol() {
-  const { currentLocation, locationHistory, isTracking, startTracking, stopTracking } = useLocation();
-  const [patrolActive, setPatrolActive] = useState(false);
+  const { currentLocation, isTracking, startTracking, stopTracking } = useLocation();
+  const { user } = useAuth();
+  const { 
+    activePatrol, 
+    pastPatrols, 
+    isLoading, 
+    startPatrol, 
+    endPatrol, 
+    updatePatrolRoute 
+  } = usePatrol();
 
-  const startPatrol = () => {
+  // Update patrol location when current location changes
+  useEffect(() => {
+    if (activePatrol && currentLocation) {
+      updatePatrolRoute({
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }, [currentLocation, activePatrol]);
+
+  const handleStartPatrol = async () => {
     startTracking();
-    setPatrolActive(true);
+    await startPatrol();
   };
 
-  const endPatrol = () => {
+  const handleEndPatrol = () => {
+    endPatrol();
     stopTracking();
-    setPatrolActive(false);
   };
 
   return (
@@ -34,7 +57,7 @@ export default function Patrol() {
       </div>
 
       {/* Patrol Controls */}
-      {patrolActive ? (
+      {activePatrol ? (
         <Card className="border-l-4 border-l-primary">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
@@ -45,9 +68,7 @@ export default function Patrol() {
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 <span>
-                  {locationHistory.length > 0 
-                    ? formatDistanceToNow(new Date(locationHistory[0].timestamp), { addSuffix: false }) 
-                    : "Just started"}
+                  {formatDistanceToNow(parseISO(activePatrol.startTime), { addSuffix: false })}
                 </span>
               </Badge>
             </div>
@@ -65,14 +86,19 @@ export default function Patrol() {
               
               <div className="flex items-center gap-2 text-sm">
                 <Check className="h-4 w-4 text-green-500" />
-                <span>Alertness checks: All passed (0/5)</span>
+                <span>Route points: {activePatrol.routeData?.length || 0} recorded</span>
               </div>
               
               <div className="flex items-center gap-2 text-sm">
                 <User className="h-4 w-4 text-muted-foreground" />
-                <span>Patrol guard: You</span>
+                <span>Patrol guard: {user?.fullName || "You"}</span>
               </div>
               
+              <div className="flex items-center gap-2 text-sm">
+                <Calendar className="h-4 w-4 text-blue-500" />
+                <span>Started: {format(parseISO(activePatrol.startTime), 'MMM d, h:mm a')}</span>
+              </div>
+
               <div className="flex items-center gap-2 text-sm">
                 <Radio className="h-4 w-4 text-blue-500" />
                 <span>Status: Actively patrolling</span>
@@ -83,7 +109,8 @@ export default function Patrol() {
             <Button 
               variant="destructive" 
               className="w-full"
-              onClick={endPatrol}
+              onClick={handleEndPatrol}
+              disabled={isLoading}
             >
               <StopCircle className="h-4 w-4 mr-2" />
               End Patrol
@@ -98,8 +125,8 @@ export default function Patrol() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              Starting a patrol will track your location and monitor your route. You will
-              receive periodic alertness checks to ensure your safety.
+              Starting a patrol will track your location and monitor your route. Your patrol data
+              will be recorded and available to community members.
             </p>
             
             <div className="space-y-2 text-sm">
@@ -109,7 +136,7 @@ export default function Patrol() {
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span>You'll receive alertness checks every 30 minutes</span>
+                <span>Your patrol's duration and route will be recorded</span>
               </div>
               <div className="flex items-center gap-2">
                 <Radio className="h-4 w-4 text-muted-foreground" />
@@ -120,7 +147,8 @@ export default function Patrol() {
           <CardFooter>
             <Button 
               className="w-full"
-              onClick={startPatrol}
+              onClick={handleStartPatrol}
+              disabled={isLoading}
             >
               <PlayCircle className="h-4 w-4 mr-2" />
               Start Patrol
@@ -143,10 +171,10 @@ export default function Patrol() {
               <CardDescription>Location history for current patrol</CardDescription>
             </CardHeader>
             <CardContent>
-              {patrolActive && locationHistory.length > 0 ? (
+              {activePatrol && activePatrol.routeData && activePatrol.routeData.length > 0 ? (
                 <ScrollArea className="h-64">
                   <div className="space-y-3">
-                    {locationHistory.slice().reverse().map((loc, index) => (
+                    {[...activePatrol.routeData].reverse().map((loc, index) => (
                       <div 
                         key={index} 
                         className="flex items-start gap-3 p-2 border-b last:border-0"
@@ -159,7 +187,7 @@ export default function Patrol() {
                             {loc.latitude.toFixed(6)}, {loc.longitude.toFixed(6)}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(loc.timestamp), { addSuffix: true })}
+                            {formatDistanceToNow(parseISO(loc.timestamp), { addSuffix: true })}
                           </p>
                         </div>
                       </div>
@@ -171,7 +199,7 @@ export default function Patrol() {
                   <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                   <p className="text-sm font-medium">No route data available</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {patrolActive 
+                    {activePatrol 
                       ? "Route tracking has started. Move around to record locations." 
                       : "Start a patrol to begin tracking your route"}
                   </p>
@@ -188,13 +216,69 @@ export default function Patrol() {
               <CardDescription>History of completed patrols</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border bg-muted/30 p-8 text-center">
-                <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm font-medium">No patrol history</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Your completed patrols will appear here
-                </p>
-              </div>
+              {pastPatrols.length > 0 ? (
+                <ScrollArea className="h-64">
+                  <div className="space-y-4">
+                    {pastPatrols.map((patrol) => (
+                      <div key={patrol.id} className="p-3 border rounded-md">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center gap-2">
+                            <Shield className="h-4 w-4 text-primary" />
+                            <span className="font-medium">
+                              {format(parseISO(patrol.startTime), 'MMM d, yyyy')}
+                            </span>
+                          </div>
+                          <Badge 
+                            variant={patrol.status === 'completed' ? 'default' : 'destructive'}
+                            className="text-xs"
+                          >
+                            {patrol.status === 'completed' ? 'Completed' : 'Interrupted'}
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-y-2 text-sm">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-muted-foreground">Time:</span>
+                          </div>
+                          <div>
+                            {format(parseISO(patrol.startTime), 'h:mm a')} - 
+                            {patrol.endTime ? format(parseISO(patrol.endTime), ' h:mm a') : ' --'}
+                          </div>
+                          
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-muted-foreground">Points:</span>
+                          </div>
+                          <div>{patrol.routeData?.length || 0} locations</div>
+                          
+                          <div className="flex items-center gap-1">
+                            <AlertTriangle className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-muted-foreground">Checks missed:</span>
+                          </div>
+                          <div>{patrol.missedAwakeChecks}</div>
+                        </div>
+                        
+                        <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
+                          Duration: {patrol.endTime 
+                            ? formatDistanceToNow(parseISO(patrol.startTime), { 
+                                end: parseISO(patrol.endTime) 
+                              })
+                            : 'Unknown'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="rounded-md border bg-muted/30 p-8 text-center">
+                  <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm font-medium">No patrol history</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Your completed patrols will appear here
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
