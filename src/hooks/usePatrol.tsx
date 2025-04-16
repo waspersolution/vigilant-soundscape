@@ -43,7 +43,9 @@ export function usePatrol() {
           communityId: activeData.community_id,
           startTime: activeData.start_time,
           endTime: activeData.end_time,
-          routeData: activeData.route_data || [],
+          routeData: Array.isArray(activeData.route_data) 
+            ? activeData.route_data as { latitude: number; longitude: number; timestamp: string }[] 
+            : [],
           missedAwakeChecks: activeData.missed_awake_checks || 0,
           totalDistance: activeData.total_distance || 0,
           status: activeData.status as PatrolSession['status'],
@@ -71,7 +73,9 @@ export function usePatrol() {
           communityId: patrol.community_id,
           startTime: patrol.start_time,
           endTime: patrol.end_time,
-          routeData: patrol.route_data || [],
+          routeData: Array.isArray(patrol.route_data) 
+            ? patrol.route_data as { latitude: number; longitude: number; timestamp: string }[] 
+            : [],
           missedAwakeChecks: patrol.missed_awake_checks || 0,
           totalDistance: patrol.total_distance || 0,
           status: patrol.status as PatrolSession['status'],
@@ -135,7 +139,9 @@ export function usePatrol() {
         communityId: data.community_id,
         startTime: data.start_time,
         endTime: data.end_time,
-        routeData: data.route_data || [],
+        routeData: Array.isArray(data.route_data) 
+          ? data.route_data as { latitude: number; longitude: number; timestamp: string }[] 
+          : [],
         missedAwakeChecks: data.missed_awake_checks || 0,
         totalDistance: data.total_distance || 0,
         status: data.status as PatrolSession['status'],
@@ -177,7 +183,7 @@ export function usePatrol() {
       if (fetchError) throw fetchError;
 
       // Update with new location
-      const updatedRouteData = [...(patrol.route_data || []), locationData];
+      const updatedRouteData = [...(Array.isArray(patrol.route_data) ? patrol.route_data : []), locationData];
       
       const { error: updateError } = await supabase
         .from('patrol_sessions')

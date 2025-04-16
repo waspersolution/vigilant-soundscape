@@ -50,6 +50,8 @@ export default function ActivePatrolsList() {
           startTime: patrol.start_time,
           status: patrol.status as PatrolSession['status'],
           routeData: [],
+          missedAwakeChecks: 0, // Adding the missing required property
+          totalDistance: 0, // Adding the missing required property
         }));
         
         setActivePatrols(formattedPatrols);

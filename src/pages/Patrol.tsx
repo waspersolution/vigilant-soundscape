@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +44,16 @@ export default function Patrol() {
   const handleEndPatrol = () => {
     endPatrol();
     stopTracking();
+  };
+
+  const calculateDuration = (startTime: string, endTime?: string) => {
+    if (!endTime) return 'Unknown';
+    
+    // Use the start time and compare to end time
+    return formatDistanceToNow(parseISO(startTime), { 
+      includeSeconds: true,
+      addSuffix: false
+    });
   };
 
   return (
@@ -260,11 +269,7 @@ export default function Patrol() {
                         </div>
                         
                         <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
-                          Duration: {patrol.endTime 
-                            ? formatDistanceToNow(parseISO(patrol.startTime), { 
-                                end: parseISO(patrol.endTime) 
-                              })
-                            : 'Unknown'}
+                          Duration: {calculateDuration(patrol.startTime, patrol.endTime)}
                         </div>
                       </div>
                     ))}
