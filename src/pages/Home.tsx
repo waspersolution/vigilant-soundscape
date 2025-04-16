@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { useAlert } from "@/contexts/AlertContext";
 import { useLocation } from "@/contexts/LocationContext";
@@ -8,7 +7,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import AlertsList from "@/components/alerts/AlertsList";
 import EmergencyButton from "@/components/alerts/EmergencyButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import WeatherWidget from "@/components/dashboard/WeatherWidget";
 import MemberStatusList from "@/components/dashboard/MemberStatusList";
 import { Shield, Radio, MapPin, Users, AlertTriangle, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,7 +33,7 @@ export default function Home() {
       </div>
 
       {/* Top Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className={cn(
           "border-l-4",
           activeAlerts.length > 0 ? "border-l-destructive" : "border-l-green-500"
@@ -93,8 +91,6 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
-
-        <WeatherWidget />
       </div>
 
       {/* Main Content Grid */}
