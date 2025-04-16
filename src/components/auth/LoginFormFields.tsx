@@ -16,6 +16,7 @@ interface LoginFormFieldsProps {
   error: string;
   isLoading: boolean;
   onForgotPasswordClick?: () => void;
+  disabled?: boolean;
 }
 
 export default function LoginFormFields({
@@ -26,7 +27,8 @@ export default function LoginFormFields({
   handleSubmit,
   error,
   isLoading,
-  onForgotPasswordClick
+  onForgotPasswordClick,
+  disabled = false
 }: LoginFormFieldsProps) {
   const [showPassword, setShowPassword] = useState(false);
   
@@ -47,7 +49,7 @@ export default function LoginFormFields({
           placeholder="your.email@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          disabled={isLoading}
+          disabled={isLoading || disabled}
           required
         />
       </div>
@@ -61,7 +63,7 @@ export default function LoginFormFields({
               variant="link"
               className="px-0 font-normal"
               onClick={onForgotPasswordClick}
-              disabled={isLoading}
+              disabled={isLoading || disabled}
             >
               Forgot password?
             </Button>
@@ -72,7 +74,7 @@ export default function LoginFormFields({
           type={showPassword ? "text" : "password"}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          disabled={isLoading}
+          disabled={isLoading || disabled}
           required
         />
       </div>
@@ -82,11 +84,12 @@ export default function LoginFormFields({
           id="showPassword" 
           checked={showPassword} 
           onCheckedChange={(checked) => setShowPassword(checked === true)}
+          disabled={isLoading || disabled}
         />
         <Label htmlFor="showPassword" className="text-sm cursor-pointer">Show password</Label>
       </div>
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button type="submit" className="w-full" disabled={isLoading || disabled}>
         {isLoading ? "Signing in..." : "Sign In"}
       </Button>
     </form>

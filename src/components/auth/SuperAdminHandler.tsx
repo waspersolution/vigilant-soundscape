@@ -57,9 +57,36 @@ class SuperAdminHandler {
         return;
       }
       
+      // Handle the case where user doesn't exist due to email not being confirmed
+      if (signInError?.message === "Email not confirmed") {
+        console.log("Email not confirmed, checking if user exists");
+        
+        // Check if the user exists by trying to get the user by email
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(email);
+        
+        if (userData?.user) {
+          console.log("User exists but email not confirmed. Please check your email for confirmation link");
+          toast.info("Your account exists but email is not confirmed. Please check your email for confirmation link or try again later.");
+          if (onFinish) onFinish();
+          return;
+        }
+      }
+      
       // If user doesn't exist, create it
       if (signInError) {
         console.log("User doesn't exist, creating super admin...", signInError);
+        
+        // Check for rate limiting errors before attempting to sign up
+        if (signInError.message.includes("rate limit") || 
+            signInError.message.includes("For security purposes") ||
+            signInError.status === 429) {
+          const errorMsg = "Rate limit exceeded. Please wait a few minutes before trying again.";
+          console.error("Rate limit error:", errorMsg);
+          toast.error(errorMsg);
+          if (onError) onError(errorMsg);
+          if (onFinish) onFinish();
+          return;
+        }
         
         // Manual approach to create user
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -73,6 +100,17 @@ class SuperAdminHandler {
         });
         
         if (signUpError) {
+          // Handle rate limiting on signup
+          if (signUpError.message.includes("rate limit") || 
+              signUpError.message.includes("For security purposes") ||
+              signUpError.status === 429) {
+            const errorMsg = "Rate limit exceeded. Please wait a few minutes before trying again.";
+            console.error("Rate limit error:", signUpError);
+            toast.error(errorMsg);
+            if (onError) onError(errorMsg);
+            return;
+          }
+          
           console.error("Signup error details:", signUpError);
           throw new Error(`Signup error: ${signUpError.message}`);
         }
