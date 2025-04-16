@@ -91,80 +91,25 @@ class SuperAdminHandler {
   private static async handleProfileCreation(userId: string, email: string) {
     console.log("User created, checking for profile:", userId);
     
-    // Check if profile was created by the trigger
-    const { data: profileCheck, error: profileCheckError } = await supabase
+    // Directly try to create or update the profile
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-      
-    if (profileCheckError) {
-      console.error("Error checking for profile:", profileCheckError);
+      .upsert({
+        id: userId,
+        email: email,
+        full_name: 'Azeez Wosilat',
+        role: 'super_admin',
+        community_id: null
+      })
+      .select();
+    
+    if (profileError) {
+      console.error("Profile creation/update error:", profileError);
+      toast.error("Profile error: " + profileError.message);
+      throw new Error(`Profile error: ${profileError.message}`);
     }
-      
-    if (!profileCheck) {
-      console.log("Profile not found, manually creating...");
-      
-      try {
-        // Manually create profile if trigger fails
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: userId,
-            email: email,
-            full_name: 'Azeez Wosilat',
-            role: 'member'
-          });
-        
-        if (profileError) {
-          console.error("Error creating profile:", profileError);
-          toast.error("Profile creation error: " + profileError.message);
-          throw new Error(`Profile creation error: ${profileError.message}`);
-        } else {
-          console.log("Profile created successfully:", profileData);
-          
-          // Now try to create super admin role
-          try {
-            const { data: rpcData, error: rpcError } = await supabase.rpc('create_super_admin');
-            
-            if (rpcError) {
-              console.error("Super admin RPC error after signup:", rpcError);
-              toast.error("Error creating super admin role: " + rpcError.message);
-              throw new Error(`RPC error: ${rpcError.message}`);
-            } else {
-              toast.success("Super admin created successfully");
-              console.log("Super admin created successfully:", rpcData);
-            }
-          } catch (rpcError: any) {
-            console.error("Super admin RPC exception after signup:", rpcError);
-            toast.error("Error creating super admin role: " + (rpcError.message || "Unknown error"));
-            throw new Error(`RPC exception: ${rpcError.message || "Unknown error"}`);
-          }
-        }
-      } catch (profileCreationError: any) {
-        console.error("Profile creation error:", profileCreationError);
-        toast.error("Profile creation error: " + (profileCreationError.message || "Unknown error"));
-        throw profileCreationError;
-      }
-    } else {
-      console.log("Profile already exists, updating to super admin");
-      try {
-        const { data: rpcData, error: rpcError } = await supabase.rpc('create_super_admin');
-        
-        if (rpcError) {
-          console.error("Super admin RPC error with existing profile:", rpcError);
-          toast.error("Error creating super admin role: " + rpcError.message);
-          throw new Error(`RPC error: ${rpcError.message}`);
-        } else {
-          toast.success("Super admin created successfully");
-          console.log("Super admin created successfully:", rpcData);
-        }
-      } catch (rpcError: any) {
-        console.error("Super admin RPC exception with existing profile:", rpcError);
-        toast.error("Error creating super admin role: " + (rpcError.message || "Unknown error"));
-        throw new Error(`RPC exception: ${rpcError.message || "Unknown error"}`);
-      }
-    }
+    
+    console.log("Profile created/updated successfully:", profileData);
   }
 }
 
