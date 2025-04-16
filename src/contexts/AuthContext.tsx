@@ -37,10 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               role: profile.role,
               communityId: profile.community_id,
               onlineStatus: profile.online_status || false,
-              lastLocation: profile.last_location ? {
-                latitude: profile.last_location.latitude,
-                longitude: profile.last_location.longitude,
-                timestamp: profile.last_location.timestamp
+              lastLocation: profile.last_location && typeof profile.last_location === 'object' ? {
+                latitude: Number((profile.last_location as any).latitude),
+                longitude: Number((profile.last_location as any).longitude),
+                timestamp: String((profile.last_location as any).timestamp)
               } : undefined
             });
           }
@@ -66,10 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 role: profile.role,
                 communityId: profile.community_id,
                 onlineStatus: profile.online_status || false,
-                lastLocation: profile.last_location ? {
-                  latitude: profile.last_location.latitude,
-                  longitude: profile.last_location.longitude,
-                  timestamp: profile.last_location.timestamp
+                lastLocation: profile.last_location && typeof profile.last_location === 'object' ? {
+                  latitude: Number((profile.last_location as any).latitude),
+                  longitude: Number((profile.last_location as any).longitude),
+                  timestamp: String((profile.last_location as any).timestamp)
                 } : undefined
               });
             }
