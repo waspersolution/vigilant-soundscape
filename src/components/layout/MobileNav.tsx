@@ -1,3 +1,4 @@
+
 import { Fragment, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Bell, Home, Map, Shield, Settings, Menu, Users, X } from "lucide-react";
@@ -59,7 +60,7 @@ export default function MobileNav() {
           <div className="flex flex-col h-full bg-background">
             <div className="px-4 py-6 border-b">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-primary">Guardian App</h2>
+                <h2 className="text-xl font-bold text-primary">VigilPro</h2>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-1 rounded-full hover:bg-muted"

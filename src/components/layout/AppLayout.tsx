@@ -40,7 +40,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <Sidebar>
             <SidebarHeader>
               <Link to="/" className="text-xl font-semibold text-primary">
-                Guardian App
+                VigilPro
               </Link>
             </SidebarHeader>
             <SidebarContent>
@@ -64,7 +64,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </SidebarContent>
             <SidebarFooter>
               <div className="px-3 py-2">
-                <p className="text-xs text-muted-foreground">Guardian App v1.0</p>
+                <p className="text-xs text-muted-foreground">VigilPro v1.0</p>
               </div>
             </SidebarFooter>
           </Sidebar>
