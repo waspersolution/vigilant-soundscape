@@ -2,6 +2,23 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Community, User } from "@/types";
 import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/types";
+
+type UserRole = Database["public"]["Enums"]["user_role"];
+
+// Helper function to transform database community to application Community type
+function transformCommunity(dbCommunity: any): Community {
+  return {
+    id: dbCommunity.id,
+    name: dbCommunity.name,
+    leaderId: dbCommunity.leader_id,
+    subscriptionPlan: dbCommunity.subscription_plan as 'basic' | 'premium',
+    subscriptionStatus: dbCommunity.subscription_status as 'active' | 'inactive' | 'trial',
+    maxMembers: dbCommunity.max_members,
+    emergencyContacts: dbCommunity.emergency_contacts,
+    geoBoundaries: dbCommunity.geo_boundaries
+  };
+}
 
 export async function fetchUserCommunities(userId: string): Promise<Community[]> {
   try {
@@ -22,7 +39,7 @@ export async function fetchUserCommunities(userId: string): Promise<Community[]>
     
     if (profileError && profileError.code !== 'PGRST116') throw profileError;
     
-    const communities: Community[] = leaderCommunities || [];
+    const communities: Community[] = leaderCommunities ? leaderCommunities.map(transformCommunity) : [];
     
     // If the user is a member of a community, fetch that community
     if (profile?.community_id) {
@@ -35,7 +52,7 @@ export async function fetchUserCommunities(userId: string): Promise<Community[]>
       if (memberError && memberError.code !== 'PGRST116') throw memberError;
       
       if (memberCommunity && !communities.some(c => c.id === memberCommunity.id)) {
-        communities.push(memberCommunity);
+        communities.push(transformCommunity(memberCommunity));
       }
     }
     
@@ -71,7 +88,7 @@ export async function createCommunity(name: string, userId: string): Promise<Com
       .eq("id", userId);
     
     toast.success("Community created successfully");
-    return data;
+    return transformCommunity(data);
   } catch (error) {
     console.error("Error creating community:", error);
     toast.error("Failed to create community");
@@ -96,7 +113,11 @@ export async function fetchCommunityMembers(communityId: string): Promise<User[]
       role: profile.role,
       communityId: profile.community_id,
       onlineStatus: profile.online_status || false,
-      lastLocation: profile.last_location
+      lastLocation: profile.last_location ? {
+        latitude: profile.last_location.latitude,
+        longitude: profile.last_location.longitude,
+        timestamp: profile.last_location.timestamp
+      } : undefined
     }));
   } catch (error) {
     console.error("Error fetching community members:", error);
@@ -146,7 +167,7 @@ export async function inviteMember(email: string, communityId: string): Promise<
   }
 }
 
-export async function updateMemberRole(userId: string, newRole: string): Promise<boolean> {
+export async function updateMemberRole(userId: string, newRole: UserRole): Promise<boolean> {
   try {
     const { error } = await supabase
       .from("profiles")
