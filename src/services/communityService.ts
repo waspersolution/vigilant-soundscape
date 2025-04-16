@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Community, User } from "@/types";
 import { toast } from "sonner";
@@ -106,19 +105,42 @@ export async function fetchCommunityMembers(communityId: string): Promise<User[]
     if (error) throw error;
     
     // Transform to match User type
-    return data.map(profile => ({
-      id: profile.id,
-      fullName: profile.full_name,
-      email: profile.email,
-      role: profile.role,
-      communityId: profile.community_id,
-      onlineStatus: profile.online_status || false,
-      lastLocation: profile.last_location ? {
-        latitude: profile.last_location.latitude,
-        longitude: profile.last_location.longitude,
-        timestamp: profile.last_location.timestamp
-      } : undefined
-    }));
+    return data.map(profile => {
+      // Type assertion for the last_location object
+      type LocationData = {
+        latitude: number;
+        longitude: number;
+        timestamp: string;
+      };
+      
+      // Safely extract location data with type checking
+      let lastLocation: User['lastLocation'] = undefined;
+      
+      if (profile.last_location && typeof profile.last_location === 'object') {
+        const location = profile.last_location as LocationData;
+        if (
+          'latitude' in location && 
+          'longitude' in location && 
+          'timestamp' in location
+        ) {
+          lastLocation = {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            timestamp: location.timestamp
+          };
+        }
+      }
+      
+      return {
+        id: profile.id,
+        fullName: profile.full_name,
+        email: profile.email,
+        role: profile.role,
+        communityId: profile.community_id,
+        onlineStatus: profile.online_status || false,
+        lastLocation
+      };
+    });
   } catch (error) {
     console.error("Error fetching community members:", error);
     toast.error("Failed to fetch community members");
