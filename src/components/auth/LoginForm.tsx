@@ -19,6 +19,7 @@ export default function LoginForm({ onForgotPasswordClick, onSuperAdminSignup }:
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSuperAdminProcessing, setIsSuperAdminProcessing] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,22 +33,40 @@ export default function LoginForm({ onForgotPasswordClick, onSuperAdminSignup }:
     try {
       // Check if this is the first user (super admin creation)
       if (email === "wasperstore@gmail.com" && password === "Azeezwosilat1986") {
-        const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+        setIsSuperAdminProcessing(true);
+        
+        // First try to sign in, in case the user already exists
+        const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
-          password,
-          options: {
-            data: {
-              full_name: 'Azeez Wosilat'
-            }
-          }
+          password
         });
+        
+        // If sign in fails, create the user
+        if (signInError) {
+          const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                full_name: 'Azeez Wosilat'
+              }
+            }
+          });
 
-        if (signUpError) throw signUpError;
+          if (signUpError) throw signUpError;
+        }
         
-        // Trigger super admin function after signup
-        await supabase.rpc('create_super_admin');
+        // Try to create super admin either way
+        try {
+          await supabase.rpc('create_super_admin');
+          onSuperAdminSignup?.(); // Optional callback
+        } catch (superAdminError) {
+          console.error("Super admin creation error:", superAdminError);
+          // Continue anyway since user might be logged in now
+          onSuperAdminSignup?.(); 
+        }
         
-        onSuperAdminSignup?.(); // Optional callback
+        setIsSuperAdminProcessing(false);
         return;
       }
 
@@ -55,6 +74,7 @@ export default function LoginForm({ onForgotPasswordClick, onSuperAdminSignup }:
     } catch (err: any) {
       setError(err.message || "Invalid email or password");
       console.error(err);
+      setIsSuperAdminProcessing(false);
     }
   };
 
@@ -87,7 +107,7 @@ export default function LoginForm({ onForgotPasswordClick, onSuperAdminSignup }:
               placeholder="your.email@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isSuperAdminProcessing}
               required
             />
           </div>
@@ -101,7 +121,7 @@ export default function LoginForm({ onForgotPasswordClick, onSuperAdminSignup }:
                   variant="link"
                   className="px-0 font-normal"
                   onClick={onForgotPasswordClick}
-                  disabled={isLoading}
+                  disabled={isLoading || isSuperAdminProcessing}
                 >
                   Forgot password?
                 </Button>
@@ -112,13 +132,13 @@ export default function LoginForm({ onForgotPasswordClick, onSuperAdminSignup }:
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isSuperAdminProcessing}
               required
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign In"}
+          <Button type="submit" className="w-full" disabled={isLoading || isSuperAdminProcessing}>
+            {isLoading || isSuperAdminProcessing ? "Signing in..." : "Sign In"}
           </Button>
         </form>
       </CardContent>
@@ -129,7 +149,7 @@ export default function LoginForm({ onForgotPasswordClick, onSuperAdminSignup }:
             type="button"
             onClick={handleCommunityRegistration}
             className="text-secondary hover:underline"
-            disabled={isLoading}
+            disabled={isLoading || isSuperAdminProcessing}
           >
             Register your community
           </button>
