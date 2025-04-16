@@ -14,6 +14,7 @@ import Alerts from "@/pages/Alerts";
 import Map from "@/pages/Map";
 import Patrol from "@/pages/Patrol";
 import Settings from "@/pages/Settings";
+import Community from "@/pages/Community";
 import NotFound from "@/pages/NotFound";
 import Index from "@/pages/Index";
 
@@ -52,6 +53,7 @@ const AuthenticatedApp = () => {
             <Route path="/alerts" element={<Alerts />} />
             <Route path="/map" element={<Map />} />
             <Route path="/patrol" element={<Patrol />} />
+            <Route path="/community" element={<Community />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
