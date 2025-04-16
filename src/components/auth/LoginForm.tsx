@@ -9,10 +9,10 @@ import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface LoginFormProps {
-  onRegisterClick?: () => void; // Make this optional
+  onForgotPasswordClick?: () => void;
 }
 
-export default function LoginForm({ onRegisterClick }: LoginFormProps) {
+export default function LoginForm({ onForgotPasswordClick }: LoginFormProps) {
   const { login, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,7 +50,7 @@ export default function LoginForm({ onRegisterClick }: LoginFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <Alert variant="destructive" className="mb-4">
+            <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
@@ -72,9 +72,17 @@ export default function LoginForm({ onRegisterClick }: LoginFormProps) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              <a href="#" className="text-sm text-secondary hover:underline">
-                Forgot password?
-              </a>
+              {onForgotPasswordClick && (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="px-0 font-normal"
+                  onClick={onForgotPasswordClick}
+                  disabled={isLoading}
+                >
+                  Forgot password?
+                </Button>
+              )}
             </div>
             <Input
               id="password"

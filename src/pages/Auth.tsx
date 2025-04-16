@@ -1,9 +1,12 @@
 
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
+import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 
 export default function Auth() {
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
@@ -37,7 +40,11 @@ export default function Auth() {
         <p className="text-muted-foreground">Community Security Platform</p>
       </div>
 
-      <LoginForm />
+      {showForgotPassword ? (
+        <ForgotPasswordForm onBackToLogin={() => setShowForgotPassword(false)} />
+      ) : (
+        <LoginForm onForgotPasswordClick={() => setShowForgotPassword(true)} />
+      )}
     </div>
   );
 }
