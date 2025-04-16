@@ -1,14 +1,10 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import LoginFormFields from "./LoginFormFields";
+import SuperAdminHandler from "./SuperAdminHandler";
 
 interface LoginFormProps {
   onForgotPasswordClick?: () => void;
@@ -16,10 +12,11 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ onForgotPasswordClick, onSuperAdminSignup }: LoginFormProps) {
-  const { login, isLoading } = useAuth();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [isSuperAdminProcessing, setIsSuperAdminProcessing] = useState(false);
 
   useEffect(() => {
@@ -44,136 +41,29 @@ export default function LoginForm({ onForgotPasswordClick, onSuperAdminSignup }:
     }
 
     try {
-      // Check if this is the first user (super admin creation)
+      // Check if this is super admin login attempt
       if (email === "wasperstore@gmail.com" && password === "Azeezwosilat1986") {
         setIsSuperAdminProcessing(true);
         
-        // Custom handling for super admin
-        try {
-          console.log("Starting super admin login process...");
-          
-          // First try to sign in, in case the user already exists
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-            email,
-            password
-          });
-          
-          if (signInData.user) {
-            console.log("Super admin user found, logging in:", signInData.user.id);
-            
-            // User exists, try to run the create_super_admin RPC
-            try {
-              await supabase.rpc('create_super_admin');
-              toast.success("Super admin role applied successfully");
-              console.log("Super admin role applied successfully");
-            } catch (rpcError) {
-              console.log("Super admin RPC error:", rpcError);
-              // User might already be a super admin, continue anyway
-            }
-            
-            if (onSuperAdminSignup) {
-              onSuperAdminSignup();
-            }
-            return;
-          }
-          
-          // If user doesn't exist, create it
-          if (signInError) {
-            console.log("User doesn't exist, creating super admin...", signInError);
-            
-            // Manual approach to create user and profile
-            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-              email,
-              password,
-              options: {
-                data: {
-                  full_name: 'Azeez Wosilat'
-                }
-              }
-            });
-            
-            if (signUpError) {
-              console.error("Signup error details:", signUpError);
-              throw signUpError;
-            }
-            
-            if (signUpData.user) {
-              console.log("User created:", signUpData.user.id);
-              
-              // Check if profile was created by the trigger
-              const { data: profileCheck } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', signUpData.user.id)
-                .single();
-                
-              if (!profileCheck) {
-                console.log("Profile not found, manually creating...");
-                
-                // Manually create profile if trigger fails
-                try {
-                  const { error: profileError } = await supabase
-                    .from('profiles')
-                    .upsert({
-                      id: signUpData.user.id,
-                      email: email,
-                      full_name: 'Azeez Wosilat',
-                      role: 'member'
-                    });
-                  
-                  if (profileError) {
-                    console.error("Error creating profile:", profileError);
-                    toast.error("Profile creation error: " + profileError.message);
-                  } else {
-                    console.log("Profile created successfully");
-                    
-                    // Now try to create super admin role
-                    try {
-                      await supabase.rpc('create_super_admin');
-                      toast.success("Super admin created successfully");
-                      console.log("Super admin created successfully");
-                    } catch (rpcError: any) {
-                      console.error("Super admin RPC error after signup:", rpcError);
-                      toast.error("Error creating super admin role: " + (rpcError.message || "Unknown error"));
-                    }
-                  }
-                } catch (profileCreationError: any) {
-                  console.error("Profile creation error:", profileCreationError);
-                  toast.error("Profile creation error: " + (profileCreationError.message || "Unknown error"));
-                }
-              } else {
-                console.log("Profile already exists, updating to super admin");
-                try {
-                  await supabase.rpc('create_super_admin');
-                  toast.success("Super admin created successfully");
-                } catch (rpcError: any) {
-                  console.error("Super admin RPC error:", rpcError);
-                  toast.error("Error creating super admin role: " + (rpcError.message || "Unknown error"));
-                }
-              }
-            }
-            
-            if (onSuperAdminSignup) {
-              onSuperAdminSignup();
-            }
-          }
-        } catch (err: any) {
-          console.error("Super admin creation error:", err);
-          setError("Failed to create super admin account: " + (err.message || "Unknown error"));
-          toast.error("Super admin creation failed: " + (err.message || "Unknown error"));
-        } finally {
-          setIsSuperAdminProcessing(false);
-        }
+        await SuperAdminHandler.handleSuperAdmin(
+          email, 
+          password, 
+          onSuperAdminSignup,
+          () => setIsSuperAdminProcessing(false),
+          (errorMsg) => setError(errorMsg)
+        );
         
         return;
       }
 
       // Regular user login
+      setIsLoading(true);
       await login(email, password);
     } catch (err: any) {
       setError(err.message || "Invalid email or password");
       console.error("Login error:", err);
-      setIsSuperAdminProcessing(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -190,56 +80,16 @@ export default function LoginForm({ onForgotPasswordClick, onSuperAdminSignup }:
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="your.email@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading || isSuperAdminProcessing}
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              {onForgotPasswordClick && (
-                <Button
-                  type="button"
-                  variant="link"
-                  className="px-0 font-normal"
-                  onClick={onForgotPasswordClick}
-                  disabled={isLoading || isSuperAdminProcessing}
-                >
-                  Forgot password?
-                </Button>
-              )}
-            </div>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading || isSuperAdminProcessing}
-              required
-            />
-          </div>
-
-          <Button type="submit" className="w-full" disabled={isLoading || isSuperAdminProcessing}>
-            {isLoading || isSuperAdminProcessing ? "Signing in..." : "Sign In"}
-          </Button>
-        </form>
+        <LoginFormFields 
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          handleSubmit={handleSubmit}
+          error={error}
+          isLoading={isLoading || isSuperAdminProcessing}
+          onForgotPasswordClick={onForgotPasswordClick}
+        />
       </CardContent>
       <CardFooter className="flex flex-col">
         <div className="text-sm text-center text-muted-foreground">
