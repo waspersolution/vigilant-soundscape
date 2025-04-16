@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
 import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
+import { toast } from "sonner";
 
 export default function Auth() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -15,6 +16,11 @@ export default function Auth() {
     navigate("/");
     return null;
   }
+
+  const handleSuperAdminSignup = () => {
+    toast.success("Super Admin created successfully!");
+    navigate("/");
+  };
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-muted/30 p-4">
@@ -43,7 +49,10 @@ export default function Auth() {
       {showForgotPassword ? (
         <ForgotPasswordForm onBackToLogin={() => setShowForgotPassword(false)} />
       ) : (
-        <LoginForm onForgotPasswordClick={() => setShowForgotPassword(true)} />
+        <LoginForm 
+          onForgotPasswordClick={() => setShowForgotPassword(true)}
+          onSuperAdminSignup={handleSuperAdminSignup}
+        />
       )}
     </div>
   );

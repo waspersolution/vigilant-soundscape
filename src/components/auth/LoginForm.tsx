@@ -7,12 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LoginFormProps {
   onForgotPasswordClick?: () => void;
+  onSuperAdminSignup?: () => void; // New prop for super admin signup
 }
 
-export default function LoginForm({ onForgotPasswordClick }: LoginFormProps) {
+export default function LoginForm({ onForgotPasswordClick, onSuperAdminSignup }: LoginFormProps) {
   const { login, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,9 +30,30 @@ export default function LoginForm({ onForgotPasswordClick }: LoginFormProps) {
     }
 
     try {
+      // Check if this is the first user (super admin creation)
+      if (email === "wasperstore@gmail.com" && password === "Azeezwosilat1986") {
+        const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: 'Azeez Wosilat'
+            }
+          }
+        });
+
+        if (signUpError) throw signUpError;
+        
+        // Trigger super admin function after signup
+        await supabase.rpc('create_super_admin');
+        
+        onSuperAdminSignup?.(); // Optional callback
+        return;
+      }
+
       await login(email, password);
-    } catch (err) {
-      setError("Invalid email or password");
+    } catch (err: any) {
+      setError(err.message || "Invalid email or password");
       console.error(err);
     }
   };
