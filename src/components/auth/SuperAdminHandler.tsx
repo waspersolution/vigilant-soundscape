@@ -105,17 +105,7 @@ class SuperAdminHandler {
     if (!profileCheck) {
       console.log("Profile not found, manually creating...");
       
-      // Manually create profile if trigger fails
       try {
-        // First, check if the enum type exists
-        const { data: enumCheck, error: enumError } = await supabase
-          .from('pg_type')
-          .select('*')
-          .eq('typname', 'user_role')
-          .maybeSingle();
-          
-        console.log("Enum check result:", enumCheck, enumError);
-        
         // Manually create profile if trigger fails
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
