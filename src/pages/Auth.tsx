@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function Auth() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const navigate = useNavigate();
   
   // Check for Supabase connection
@@ -34,16 +34,16 @@ export default function Auth() {
   
   // Redirect if already authenticated
   useEffect(() => {
-    console.log("Auth page - Auth state:", { isAuthenticated, isLoading });
+    console.log("Auth page - Auth state:", { isAuthenticated, isLoading, user });
     
     if (!isLoading && isAuthenticated) {
       console.log("User is authenticated in Auth page, redirecting to home");
       navigate("/", { replace: true });
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, navigate, user]);
 
   const handleSuperAdminSignup = () => {
-    toast.success("Super Admin created successfully!");
+    toast.success("Super Admin logged in successfully!");
     // Force page reload to ensure fresh authentication state
     window.location.href = "/";
   };

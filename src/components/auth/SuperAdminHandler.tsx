@@ -25,30 +25,26 @@ class SuperAdminHandler {
       if (signInData.user) {
         console.log("Super admin user found, logging in:", signInData.user.id);
         
-        // User exists, try to update the profile with super_admin role using the enum type
+        // Set user metadata directly instead of trying to update the profile
+        // This avoids the infinite recursion issue
         try {
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .upsert({
-              id: signInData.user.id,
-              email: email,
-              full_name: 'Azeez Wosilat',
-              role: 'super_admin' as UserRole, // Using the enum type
-              community_id: null
-            })
-            .select();
+          const { error: metadataError } = await supabase.auth.updateUser({
+            data: { 
+              role: 'super_admin',
+              full_name: 'Azeez Wosilat'
+            }
+          });
           
-          if (profileError) {
-            console.error("Profile update error:", profileError);
-            toast.error(`Profile error: ${profileError.message}`);
-            // Continue anyway, as this might be a non-critical error
+          if (metadataError) {
+            console.error("Metadata update error:", metadataError);
+            // Continue anyway as we at least authenticated successfully
           } else {
-            console.log("Profile updated successfully:", profileData);
-            toast.success("Super admin profile updated successfully");
+            console.log("User metadata updated successfully");
+            toast.success("Super admin login successful");
           }
-        } catch (profileError: any) {
-          console.error("Profile update exception:", profileError);
-          // Continue anyway, as this might be a non-critical error
+        } catch (updateError: any) {
+          console.error("Metadata update exception:", updateError);
+          // Continue anyway as we at least authenticated successfully
         }
         
         if (onSuperAdminSignup) {
@@ -93,13 +89,14 @@ class SuperAdminHandler {
           return;
         }
         
-        // Manual approach to create user
+        // Create the user with super_admin role in metadata
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: {
-              full_name: 'Azeez Wosilat'
+              full_name: 'Azeez Wosilat',
+              role: 'super_admin'
             }
           }
         });
@@ -121,30 +118,8 @@ class SuperAdminHandler {
         }
         
         if (signUpData.user) {
-          // Create profile for the new user with super_admin role
-          try {
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .upsert({
-                id: signUpData.user.id,
-                email: email,
-                full_name: 'Azeez Wosilat',
-                role: 'super_admin' as UserRole, // Using the enum type
-                community_id: null
-              })
-              .select();
-            
-            if (profileError) {
-              console.error("Profile creation error:", profileError);
-              toast.error(`Profile error: ${profileError.message}`);
-              // Continue anyway, as the auth user was created
-            } else {
-              console.log("Profile created successfully:", profileData);
-            }
-          } catch (profileError: any) {
-            console.error("Profile creation exception:", profileError);
-            // Continue anyway, as the auth user was created
-          }
+          console.log("Super admin created successfully:", signUpData.user.id);
+          toast.success("Super admin created successfully - check your email for confirmation");
           
           if (onSuperAdminSignup) {
             onSuperAdminSignup();

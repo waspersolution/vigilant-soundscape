@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { User } from "@/types";
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
@@ -8,8 +8,20 @@ import { Database } from "@/integrations/supabase/types";
 type ProfileType = Database["public"]["Tables"]["profiles"]["Row"];
 type UserRole = Database["public"]["Enums"]["user_role"];
 
+interface UserWithRole extends User {
+  role?: UserRole;
+  fullName?: string;
+  communityId?: string | null;
+  onlineStatus?: boolean;
+  lastLocation?: {
+    latitude: number;
+    longitude: number;
+    timestamp: string;
+  };
+}
+
 interface AuthContextType {
-  user: User | null;
+  user: UserWithRole | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -20,7 +32,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserWithRole | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -28,14 +41,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log("Auth state changed:", event, !!session);
+      (event, currentSession) => {
+        console.log("Auth state changed:", event, !!currentSession);
         
-        if (session) {
-          // Use setTimeout to prevent recursive RLS policy issues
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 0);
+        setSession(currentSession);
+        
+        if (currentSession) {
+          // Extract role from user metadata if available to avoid profiles table
+          const userWithRole: UserWithRole = {
+            ...currentSession.user,
+            role: (currentSession.user.user_metadata?.role as UserRole) || 'member',
+            fullName: currentSession.user.user_metadata?.full_name || 'User'
+          };
+          
+          setUser(userWithRole);
+          setIsLoading(false);
         } else {
           setUser(null);
           setIsLoading(false);
@@ -48,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkSession = async () => {
       try {
         console.log("Checking for existing session");
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error("Session error:", error);
@@ -56,10 +76,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
         
-        if (session) {
-          console.log("Found existing session, fetching profile");
-          // User is logged in, get their profile
-          fetchUserProfile(session.user.id);
+        if (initialSession) {
+          console.log("Found existing session:", initialSession.user.id);
+          setSession(initialSession);
+          
+          // Extract role from user metadata to avoid profiles table query
+          const userWithRole: UserWithRole = {
+            ...initialSession.user,
+            role: (initialSession.user.user_metadata?.role as UserRole) || 'member',
+            fullName: initialSession.user.user_metadata?.full_name || 'User'
+          };
+          
+          setUser(userWithRole);
+          setIsLoading(false);
         } else {
           // No active session
           console.log("No active session found");
@@ -67,47 +96,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         console.error("Auth state initialization error:", err);
-        setIsLoading(false);
-      }
-    };
-
-    // Function to fetch user profile data
-    const fetchUserProfile = async (userId: string) => {
-      try {
-        console.log("Fetching user profile for ID:", userId);
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-
-        if (error) {
-          console.error("Profile fetch error:", error);
-          setIsLoading(false);
-          return;
-        }
-
-        if (profile) {
-          console.log("Profile fetched successfully:", profile);
-          setUser({
-            id: userId,
-            email: profile.email,
-            fullName: profile.full_name,
-            role: profile.role,
-            communityId: profile.community_id,
-            onlineStatus: profile.online_status || false,
-            lastLocation: profile.last_location && typeof profile.last_location === 'object' ? {
-              latitude: Number((profile.last_location as any).latitude),
-              longitude: Number((profile.last_location as any).longitude),
-              timestamp: String((profile.last_location as any).timestamp)
-            } : undefined
-          });
-        } else {
-          console.log("No profile found for user:", userId);
-        }
-        setIsLoading(false);
-      } catch (err) {
-        console.error("Profile fetch exception:", err);
         setIsLoading(false);
       }
     };
@@ -125,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       console.log("Attempting login for:", email);
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
@@ -154,7 +142,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         options: {
           data: {
-            full_name: fullName
+            full_name: fullName,
+            role: 'member'
           }
         }
       });
@@ -182,6 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
       setUser(null);
+      setSession(null);
       console.log("Logout successful");
       toast.success("Logged out successfully");
     } catch (error: any) {
