@@ -85,7 +85,17 @@ export function usePatrol() {
 
     setIsLoading(true);
     try {
-      const createdPatrol = await createPatrol(user);
+      // Ensure the user object has all required properties for the User type
+      const userWithRequiredProps = {
+        id: user.id,
+        fullName: user.fullName || 'Unknown User', // Provide default if missing
+        email: user.email || '',
+        role: user.role || 'security_personnel', // Provide default if missing
+        communityId: user.communityId,
+        onlineStatus: user.onlineStatus || false // Provide default if missing
+      };
+      
+      const createdPatrol = await createPatrol(userWithRequiredProps);
       if (createdPatrol) {
         setActivePatrol(createdPatrol);
         
