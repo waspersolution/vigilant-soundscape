@@ -1,7 +1,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Tables } from "@/integrations/supabase/types";
+import { Database } from "@/integrations/supabase/types";
+
+type UserRole = Database["public"]["Enums"]["user_role"];
 
 class SuperAdminHandler {
   static async handleSuperAdmin(
@@ -23,7 +25,7 @@ class SuperAdminHandler {
       if (signInData.user) {
         console.log("Super admin user found, logging in:", signInData.user.id);
         
-        // User exists, try to update the profile with super_admin role using a string directly
+        // User exists, try to update the profile with super_admin role using the enum type
         try {
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
@@ -31,7 +33,7 @@ class SuperAdminHandler {
               id: signInData.user.id,
               email: email,
               full_name: 'Azeez Wosilat',
-              role: 'super_admin', // Using a string instead of enum
+              role: 'super_admin' as UserRole, // Using the enum type
               community_id: null
             })
             .select();
@@ -76,7 +78,7 @@ class SuperAdminHandler {
         }
         
         if (signUpData.user) {
-          // Create profile for the new user with super_admin role as string
+          // Create profile for the new user with super_admin role
           try {
             const { data: profileData, error: profileError } = await supabase
               .from('profiles')
@@ -84,7 +86,7 @@ class SuperAdminHandler {
                 id: signUpData.user.id,
                 email: email,
                 full_name: 'Azeez Wosilat',
-                role: 'super_admin', // Using a string instead of enum
+                role: 'super_admin' as UserRole, // Using the enum type
                 community_id: null
               })
               .select();

@@ -9,7 +9,298 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      alerts: {
+        Row: {
+          audio_url: string | null
+          community_id: string
+          created_at: string
+          id: string
+          location: Json
+          message: string | null
+          priority: number
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          sender_id: string
+          type: string
+        }
+        Insert: {
+          audio_url?: string | null
+          community_id: string
+          created_at?: string
+          id?: string
+          location: Json
+          message?: string | null
+          priority: number
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          sender_id: string
+          type: string
+        }
+        Update: {
+          audio_url?: string | null
+          community_id?: string
+          created_at?: string
+          id?: string
+          location?: Json
+          message?: string | null
+          priority?: number
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          sender_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channels: {
+        Row: {
+          community_id: string
+          created_at: string
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          community_id: string
+          created_at?: string
+          id?: string
+          name: string
+          type: string
+        }
+        Update: {
+          community_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channels_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      communities: {
+        Row: {
+          created_at: string
+          emergency_contacts: Json | null
+          geo_boundaries: Json | null
+          id: string
+          leader_id: string | null
+          max_members: number | null
+          name: string
+          subscription_plan: string | null
+          subscription_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          emergency_contacts?: Json | null
+          geo_boundaries?: Json | null
+          id?: string
+          leader_id?: string | null
+          max_members?: number | null
+          name: string
+          subscription_plan?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          emergency_contacts?: Json | null
+          geo_boundaries?: Json | null
+          id?: string
+          leader_id?: string | null
+          max_members?: number | null
+          name?: string
+          subscription_plan?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communities_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          audio_url: string | null
+          channel_id: string
+          content: string | null
+          created_at: string
+          id: string
+          sender_id: string
+          type: string
+        }
+        Insert: {
+          audio_url?: string | null
+          channel_id: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          sender_id: string
+          type: string
+        }
+        Update: {
+          audio_url?: string | null
+          channel_id?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          sender_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patrol_sessions: {
+        Row: {
+          community_id: string
+          created_at: string
+          end_time: string | null
+          guard_id: string
+          id: string
+          missed_awake_checks: number | null
+          route_data: Json | null
+          start_time: string
+          status: string | null
+          total_distance: number | null
+          updated_at: string
+        }
+        Insert: {
+          community_id: string
+          created_at?: string
+          end_time?: string | null
+          guard_id: string
+          id?: string
+          missed_awake_checks?: number | null
+          route_data?: Json | null
+          start_time?: string
+          status?: string | null
+          total_distance?: number | null
+          updated_at?: string
+        }
+        Update: {
+          community_id?: string
+          created_at?: string
+          end_time?: string | null
+          guard_id?: string
+          id?: string
+          missed_awake_checks?: number | null
+          route_data?: Json | null
+          start_time?: string
+          status?: string | null
+          total_distance?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patrol_sessions_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patrol_sessions_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          community_id: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          last_location: Json | null
+          online_status: boolean | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          community_id?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id: string
+          last_location?: Json | null
+          online_status?: boolean | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          community_id?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          last_location?: Json | null
+          online_status?: boolean | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_community"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +309,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role:
+        | "super_admin"
+        | "admin"
+        | "community_leader"
+        | "community_manager"
+        | "member"
+        | "security_personnel"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +430,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: [
+        "super_admin",
+        "admin",
+        "community_leader",
+        "community_manager",
+        "member",
+        "security_personnel",
+      ],
+    },
   },
 } as const

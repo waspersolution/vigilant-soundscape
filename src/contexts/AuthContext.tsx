@@ -3,6 +3,10 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { User } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/types";
+
+type ProfileType = Database["public"]["Tables"]["profiles"]["Row"];
+type UserRole = Database["public"]["Enums"]["user_role"];
 
 interface AuthContextType {
   user: User | null;
