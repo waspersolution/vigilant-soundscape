@@ -2,8 +2,15 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { PatrolSession } from "@/types";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  fetchActivePatrol, 
+  fetchPastPatrols, 
+  createPatrol, 
+  updatePatrolRoute, 
+  completePatrol 
+} from "@/services/patrolService";
+import { createCompletedPatrol } from "@/utils/patrolUtils";
 
 export function usePatrol() {
   const [activePatrol, setActivePatrol] = useState<PatrolSession | null>(null);
@@ -25,60 +32,23 @@ export function usePatrol() {
     
     setIsLoading(true);
     try {
-      // First, check for an active patrol for the current user
-      const { data: activeData, error: activeError } = await supabase
-        .from('patrol_sessions')
-        .select('*')
-        .eq('guard_id', user.id)
-        .eq('status', 'active')
-        .maybeSingle();
-
-      if (activeError) throw activeError;
-      
+      // Fetch active patrol
+      const activeData = await fetchActivePatrol(user.id);
       if (activeData) {
         setActivePatrol({
-          id: activeData.id,
-          guardId: activeData.guard_id,
-          guardName: user.fullName,
-          communityId: activeData.community_id,
-          startTime: activeData.start_time,
-          endTime: activeData.end_time,
-          routeData: Array.isArray(activeData.route_data) 
-            ? activeData.route_data as { latitude: number; longitude: number; timestamp: string }[] 
-            : [],
-          missedAwakeChecks: activeData.missed_awake_checks || 0,
-          totalDistance: activeData.total_distance || 0,
-          status: activeData.status as PatrolSession['status'],
+          ...activeData,
+          guardName: user.fullName
         });
       } else {
         setActivePatrol(null);
       }
 
-      // Then, fetch past patrols
-      const { data: pastData, error: pastError } = await supabase
-        .from('patrol_sessions')
-        .select('*')
-        .eq('guard_id', user.id)
-        .in('status', ['completed', 'interrupted'])
-        .order('end_time', { ascending: false })
-        .limit(10);
-
-      if (pastError) throw pastError;
-      
-      if (pastData) {
+      // Fetch past patrols
+      const pastData = await fetchPastPatrols(user.id);
+      if (pastData.length > 0) {
         setPastPatrols(pastData.map(patrol => ({
-          id: patrol.id,
-          guardId: patrol.guard_id,
-          guardName: user.fullName,
-          communityId: patrol.community_id,
-          startTime: patrol.start_time,
-          endTime: patrol.end_time,
-          routeData: Array.isArray(patrol.route_data) 
-            ? patrol.route_data as { latitude: number; longitude: number; timestamp: string }[] 
-            : [],
-          missedAwakeChecks: patrol.missed_awake_checks || 0,
-          totalDistance: patrol.total_distance || 0,
-          status: patrol.status as PatrolSession['status'],
+          ...patrol,
+          guardName: user.fullName
         })));
       }
     } catch (error) {
@@ -115,44 +85,15 @@ export function usePatrol() {
 
     setIsLoading(true);
     try {
-      const newPatrol = {
-        guard_id: user.id,
-        community_id: user.communityId,
-        status: 'active',
-        route_data: [],
-        missed_awake_checks: 0,
-        total_distance: 0,
-      };
-
-      const { data, error } = await supabase
-        .from('patrol_sessions')
-        .insert(newPatrol)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const createdPatrol: PatrolSession = {
-        id: data.id,
-        guardId: data.guard_id,
-        guardName: user.fullName,
-        communityId: data.community_id,
-        startTime: data.start_time,
-        endTime: data.end_time,
-        routeData: Array.isArray(data.route_data) 
-          ? data.route_data as { latitude: number; longitude: number; timestamp: string }[] 
-          : [],
-        missedAwakeChecks: data.missed_awake_checks || 0,
-        totalDistance: data.total_distance || 0,
-        status: data.status as PatrolSession['status'],
-      };
-
-      setActivePatrol(createdPatrol);
-      
-      toast({
-        title: "Patrol Started",
-        description: "Your patrol has been started successfully",
-      });
+      const createdPatrol = await createPatrol(user);
+      if (createdPatrol) {
+        setActivePatrol(createdPatrol);
+        
+        toast({
+          title: "Patrol Started",
+          description: "Your patrol has been started successfully",
+        });
+      }
       
       return createdPatrol;
     } catch (error) {
@@ -169,40 +110,22 @@ export function usePatrol() {
   };
 
   // Update patrol route data
-  const updatePatrolRoute = async (locationData: { latitude: number; longitude: number; timestamp: string }) => {
+  const handleUpdatePatrolRoute = async (locationData: { latitude: number; longitude: number; timestamp: string }) => {
     if (!activePatrol?.id || !user?.id) return;
 
     try {
-      // First get existing route data
-      const { data: patrol, error: fetchError } = await supabase
-        .from('patrol_sessions')
-        .select('route_data')
-        .eq('id', activePatrol.id)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      // Update with new location
-      const updatedRouteData = [...(Array.isArray(patrol.route_data) ? patrol.route_data : []), locationData];
+      const updatedRouteData = await updatePatrolRoute(activePatrol.id, locationData);
       
-      const { error: updateError } = await supabase
-        .from('patrol_sessions')
-        .update({ 
-          route_data: updatedRouteData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', activePatrol.id);
-
-      if (updateError) throw updateError;
-
-      // Update local state
-      setActivePatrol(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          routeData: [...(prev.routeData || []), locationData]
-        };
-      });
+      if (updatedRouteData) {
+        // Update local state
+        setActivePatrol(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            routeData: updatedRouteData
+          };
+        });
+      }
     } catch (error) {
       console.error("Error updating patrol route:", error);
     }
@@ -221,22 +144,10 @@ export function usePatrol() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('patrol_sessions')
-        .update({
-          status: 'completed',
-          end_time: new Date().toISOString()
-        })
-        .eq('id', activePatrol.id);
-
-      if (error) throw error;
-
+      await completePatrol(activePatrol.id);
+      
       // Update local state
-      const endedPatrol = {
-        ...activePatrol,
-        status: 'completed' as const,
-        endTime: new Date().toISOString()
-      };
+      const endedPatrol = createCompletedPatrol(activePatrol);
       
       setActivePatrol(null);
       setPastPatrols(prev => [endedPatrol, ...prev]);
@@ -263,7 +174,7 @@ export function usePatrol() {
     isLoading,
     startPatrol,
     endPatrol,
-    updatePatrolRoute,
+    updatePatrolRoute: handleUpdatePatrolRoute,
     fetchPatrolData
   };
 }
