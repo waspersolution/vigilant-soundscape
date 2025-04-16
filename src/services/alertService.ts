@@ -5,7 +5,6 @@ import { Alert } from "@/types";
 // Enable realtime for the alerts table
 export const enableRealtimeForAlerts = async () => {
   try {
-    // Fix the parameter typing issue by using type assertion
     const { error } = await supabase.rpc('enable_realtime_for_table', {
       table_name: 'alerts'
     });
@@ -23,13 +22,9 @@ export const enableRealtimeForAlerts = async () => {
 // Fetch alerts for a community
 export const fetchAlertsForCommunity = async (communityId: string): Promise<Alert[]> => {
   try {
-    // Fix join query to avoid ambiguity
     const { data, error } = await supabase
       .from('alerts')
-      .select(`
-        *,
-        sender:profiles!alerts_sender_id_fkey(full_name)
-      `)
+      .select('*, profiles:sender_id(full_name)')
       .eq('community_id', communityId)
       .order('created_at', { ascending: false });
       
@@ -37,30 +32,20 @@ export const fetchAlertsForCommunity = async (communityId: string): Promise<Aler
     
     if (!data) return [];
     
-    return data.map(alert => {
-      // Parse location if it's a string
-      const location = typeof alert.location === 'string'
-        ? JSON.parse(alert.location)
-        : alert.location;
-        
-      return {
-        id: alert.id,
-        senderId: alert.sender_id,
-        senderName: alert.sender?.full_name,
-        communityId: alert.community_id,
-        type: alert.type as Alert['type'],
-        location: {
-          latitude: location?.latitude || 0,
-          longitude: location?.longitude || 0
-        },
-        message: alert.message || undefined,
-        priority: alert.priority as Alert['priority'],
-        resolved: !!alert.resolved,
-        resolvedBy: alert.resolved_by || undefined,
-        resolvedAt: alert.resolved_at || undefined,
-        createdAt: alert.created_at
-      };
-    });
+    return data.map(alert => ({
+      id: alert.id,
+      senderId: alert.sender_id,
+      senderName: alert.profiles?.full_name,
+      communityId: alert.community_id,
+      type: alert.type as Alert['type'],
+      location: alert.location,
+      message: alert.message || undefined,
+      priority: alert.priority as Alert['priority'],
+      resolved: !!alert.resolved,
+      resolvedBy: alert.resolved_by || undefined,
+      resolvedAt: alert.resolved_at || undefined,
+      createdAt: alert.created_at
+    }));
   } catch (error) {
     console.error("Error fetching alerts:", error);
     throw error;
@@ -77,7 +62,6 @@ export const createAlert = async (
   priority: Alert['priority']
 ): Promise<Alert | null> => {
   try {
-    // Fix join query to avoid ambiguity
     const { data, error } = await supabase
       .from('alerts')
       .insert({
@@ -89,31 +73,20 @@ export const createAlert = async (
         priority,
         resolved: false
       })
-      .select(`
-        *,
-        sender:profiles!alerts_sender_id_fkey(full_name)
-      `)
+      .select('*, profiles:sender_id(full_name)')
       .single();
       
     if (error) throw error;
     
     if (!data) return null;
     
-    // Parse location if it's a string
-    const locationData = typeof data.location === 'string'
-      ? JSON.parse(data.location)
-      : data.location;
-    
     return {
       id: data.id,
       senderId: data.sender_id,
-      senderName: data.sender?.full_name,
+      senderName: data.profiles?.full_name,
       communityId: data.community_id,
       type: data.type as Alert['type'],
-      location: {
-        latitude: locationData?.latitude || 0,
-        longitude: locationData?.longitude || 0
-      },
+      location: data.location,
       message: data.message || undefined,
       priority: data.priority as Alert['priority'],
       resolved: !!data.resolved,

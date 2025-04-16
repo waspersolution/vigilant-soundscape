@@ -1,11 +1,10 @@
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { AlertProvider } from "@/contexts/alert";
+import { AlertProvider } from "@/contexts/AlertContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { AlertNotification } from "@/components/alerts/AlertNotification";
 import AppLayout from "@/components/layout/AppLayout";
@@ -20,7 +19,6 @@ import Index from "@/pages/Index";
 
 const queryClient = new QueryClient();
 
-// Move AlertProvider to wrap AppLayout so MobileNav can access it
 const AuthenticatedApp = () => {
   return (
     <LocationProvider>

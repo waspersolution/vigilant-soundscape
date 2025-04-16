@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Alert } from "@/types";
 import { useAuth } from "./AuthContext";
@@ -38,40 +39,27 @@ export function AlertProvider({ children }: { children: ReactNode }) {
         setIsLoading(true);
         const { data, error } = await supabase
           .from('alerts')
-          .select(`
-            *,
-            sender:profiles!alerts_sender_id_fkey(full_name)
-          `)
+          .select('*, profiles:sender_id(full_name)')
           .eq('community_id', user.communityId)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
 
         if (data) {
-          const formattedAlerts: Alert[] = data.map(alert => {
-            // Parse location if it's a string
-            const location = typeof alert.location === 'string'
-              ? JSON.parse(alert.location)
-              : alert.location;
-              
-            return {
-              id: alert.id,
-              senderId: alert.sender_id,
-              senderName: alert.sender?.full_name,
-              communityId: alert.community_id,
-              type: alert.type as Alert['type'],
-              location: {
-                latitude: location?.latitude || 0,
-                longitude: location?.longitude || 0
-              },
-              message: alert.message || undefined,
-              priority: alert.priority as Alert['priority'],
-              resolved: !!alert.resolved,
-              resolvedBy: alert.resolved_by || undefined,
-              resolvedAt: alert.resolved_at || undefined,
-              createdAt: alert.created_at
-            };
-          });
+          const formattedAlerts: Alert[] = data.map(alert => ({
+            id: alert.id,
+            senderId: alert.sender_id,
+            senderName: alert.profiles?.full_name,
+            communityId: alert.community_id,
+            type: alert.type as Alert['type'],
+            location: alert.location,
+            message: alert.message || undefined,
+            priority: alert.priority as Alert['priority'],
+            resolved: !!alert.resolved,
+            resolvedBy: alert.resolved_by || undefined,
+            resolvedAt: alert.resolved_at || undefined,
+            createdAt: alert.created_at
+          }));
           setAlerts(formattedAlerts);
         }
       } catch (error) {
@@ -106,18 +94,13 @@ export function AlertProvider({ children }: { children: ReactNode }) {
           .eq('id', payload.new.sender_id)
           .single();
         
-        // Parse location if it's a string
-        const location = typeof payload.new.location === 'string'
-          ? JSON.parse(payload.new.location)
-          : payload.new.location;
-        
         const newAlert: Alert = {
           id: payload.new.id,
           senderId: payload.new.sender_id,
           senderName: senderData?.full_name,
           communityId: payload.new.community_id,
           type: payload.new.type as Alert['type'],
-          location: location as Alert['location'],
+          location: payload.new.location,
           message: payload.new.message || undefined,
           priority: payload.new.priority as Alert['priority'],
           resolved: !!payload.new.resolved,

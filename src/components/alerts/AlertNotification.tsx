@@ -1,8 +1,9 @@
 
 import { useEffect } from "react";
-import { useAlert } from "@/contexts/alert";
+import { useAlert } from "@/contexts/AlertContext";
 import { useToast } from "@/hooks/use-toast";
-import { Bell, BellRing, AlertCircle, AlertTriangle } from "lucide-react";
+import { Alert, Bell, BellRing } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Alert as AlertType } from "@/types";
 
 export function AlertNotification() {
@@ -55,7 +56,7 @@ export function AlertNotification() {
       case 'panic':
         return <AlertCircle className="h-5 w-5 text-destructive" />;
       case 'emergency':
-        return <AlertTriangle className="h-5 w-5 text-destructive" />;
+        return <Alert className="h-5 w-5 text-destructive" />;
       case 'patrol_stop':
         return <Bell className="h-5 w-5 text-blue-500" />;
       case 'system':
