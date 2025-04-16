@@ -7,7 +7,7 @@ export const fetchAlerts = async (communityId: string, limit = 20, offset = 0) =
   try {
     const { data, error } = await supabase
       .from('alerts')
-      .select('*, sender:profiles!alerts_sender_id_fkey(*)')
+      .select('*, sender:profiles(*)')
       .eq('community_id', communityId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -22,8 +22,11 @@ export const fetchAlerts = async (communityId: string, limit = 20, offset = 0) =
       communityId: alert.community_id,
       type: alert.type,
       location: {
-        latitude: alert.location?.latitude || 0,
-        longitude: alert.location?.longitude || 0
+        // Safely access location properties from the Json type
+        latitude: typeof alert.location === 'object' && alert.location ? 
+          (typeof alert.location.latitude === 'number' ? alert.location.latitude : 0) : 0,
+        longitude: typeof alert.location === 'object' && alert.location ? 
+          (typeof alert.location.longitude === 'number' ? alert.location.longitude : 0) : 0
       },
       message: alert.message || '',
       priority: alert.priority,
@@ -61,7 +64,7 @@ export const createAlert = async (alert: {
         resolved: false,
         created_at: new Date().toISOString()
       })
-      .select('*, sender:profiles!alerts_sender_id_fkey(*)')
+      .select('*, sender:profiles(*)')
       .single();
 
     if (error) throw error;
@@ -97,7 +100,7 @@ export const resolveAlert = async (alertId: string, userId: string) => {
         resolved_at: resolvedAt
       })
       .eq('id', alertId)
-      .select('*, sender:profiles!alerts_sender_id_fkey(*)')
+      .select('*, sender:profiles(*)')
       .single();
 
     if (error) throw error;
@@ -109,8 +112,11 @@ export const resolveAlert = async (alertId: string, userId: string) => {
       communityId: data.community_id,
       type: data.type,
       location: {
-        latitude: data.location?.latitude || 0,
-        longitude: data.location?.longitude || 0
+        // Safely access location properties from the Json type
+        latitude: typeof data.location === 'object' && data.location ? 
+          (typeof data.location.latitude === 'number' ? data.location.latitude : 0) : 0,
+        longitude: typeof data.location === 'object' && data.location ? 
+          (typeof data.location.longitude === 'number' ? data.location.longitude : 0) : 0
       },
       message: data.message || '',
       priority: data.priority,
