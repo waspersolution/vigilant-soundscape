@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useState } from "react";
 
 interface LoginFormFieldsProps {
   email: string;
@@ -26,6 +28,8 @@ export default function LoginFormFields({
   isLoading,
   onForgotPasswordClick
 }: LoginFormFieldsProps) {
+  const [showPassword, setShowPassword] = useState(false);
+  
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
@@ -65,12 +69,21 @@ export default function LoginFormFields({
         </div>
         <Input
           id="password"
-          type="password"
+          type={showPassword ? "text" : "password"}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={isLoading}
           required
         />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox 
+          id="showPassword" 
+          checked={showPassword} 
+          onCheckedChange={(checked) => setShowPassword(checked === true)}
+        />
+        <Label htmlFor="showPassword" className="text-sm cursor-pointer">Show password</Label>
       </div>
 
       <Button type="submit" className="w-full" disabled={isLoading}>

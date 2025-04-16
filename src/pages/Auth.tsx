@@ -1,15 +1,36 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
 import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Auth() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  
+  // Check for Supabase connection
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const { error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Supabase connection error:", error);
+          toast.error("Connection error. Please try again later.");
+        } else {
+          console.log("Supabase connection successful");
+        }
+      } catch (err) {
+        console.error("Failed to connect to Supabase:", err);
+        toast.error("Connection error. Please try again later.");
+      }
+    };
+    
+    checkConnection();
+  }, []);
   
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -55,6 +76,14 @@ export default function Auth() {
           onSuperAdminSignup={handleSuperAdminSignup}
         />
       )}
+      
+      <div className="mt-8 text-sm text-muted-foreground">
+        <p>
+          Super Admin Login:<br />
+          Email: wasperstore@gmail.com<br />
+          Password: Azeezwosilat1986
+        </p>
+      </div>
     </div>
   );
 }
