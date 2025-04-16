@@ -19,8 +19,8 @@ export default function Auth() {
 
   const handleSuperAdminSignup = () => {
     toast.success("Super Admin created successfully!");
-    // Force navigate to home page where login state will be checked again
-    navigate("/", { replace: true });
+    // Force page reload to ensure fresh authentication state
+    window.location.href = "/";
   };
 
   return (

@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface LoginFormProps {
   onForgotPasswordClick?: () => void;
@@ -35,41 +36,91 @@ export default function LoginForm({ onForgotPasswordClick, onSuperAdminSignup }:
       if (email === "wasperstore@gmail.com" && password === "Azeezwosilat1986") {
         setIsSuperAdminProcessing(true);
         
-        // First try to sign in, in case the user already exists
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-        
-        // If sign in fails, create the user
-        if (signInError) {
-          const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+        // Custom handling for super admin
+        try {
+          // First try to sign in, in case the user already exists
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
             email,
-            password,
-            options: {
-              data: {
-                full_name: 'Azeez Wosilat'
+            password
+          });
+          
+          if (signInData.user) {
+            console.log("Super admin user already exists, logged in");
+            // User exists, try to run the create_super_admin RPC
+            try {
+              await supabase.rpc('create_super_admin');
+              toast.success("Super admin role applied successfully");
+            } catch (rpcError) {
+              console.log("Super admin RPC error:", rpcError);
+              // User might already be a super admin, continue anyway
+            }
+            onSuperAdminSignup?.();
+            return;
+          }
+          
+          // If user doesn't exist, create it
+          if (signInError) {
+            console.log("User doesn't exist, creating super admin...");
+            // Manual approach to create user and profile
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                data: {
+                  full_name: 'Azeez Wosilat'
+                }
+              }
+            });
+            
+            if (signUpError) {
+              throw signUpError;
+            }
+            
+            if (signUpData.user) {
+              console.log("User created:", signUpData.user.id);
+              
+              // Manually create profile if trigger fails
+              try {
+                const { error: profileError } = await supabase
+                  .from('profiles')
+                  .upsert({
+                    id: signUpData.user.id,
+                    email: email,
+                    full_name: 'Azeez Wosilat',
+                    role: 'member'
+                  });
+                
+                if (profileError) {
+                  console.error("Error creating profile:", profileError);
+                } else {
+                  console.log("Profile created successfully");
+                  
+                  // Now try to create super admin role
+                  try {
+                    await supabase.rpc('create_super_admin');
+                    toast.success("Super admin created successfully");
+                  } catch (rpcError) {
+                    console.error("Super admin RPC error after signup:", rpcError);
+                  }
+                }
+              } catch (profileCreationError) {
+                console.error("Profile creation error:", profileCreationError);
               }
             }
-          });
-
-          if (signUpError) throw signUpError;
+            
+            onSuperAdminSignup?.();
+          }
+        } catch (err) {
+          console.error("Super admin creation error:", err);
+          setError("Failed to create super admin account: " + (err.message || "Unknown error"));
+        } finally {
+          setIsSuperAdminProcessing(false);
         }
         
-        // Try to create super admin either way
-        try {
-          await supabase.rpc('create_super_admin');
-          onSuperAdminSignup?.(); // Optional callback
-        } catch (superAdminError) {
-          console.error("Super admin creation error:", superAdminError);
-          // Continue anyway since user might be logged in now
-          onSuperAdminSignup?.(); 
-        }
-        
-        setIsSuperAdminProcessing(false);
         return;
       }
 
+      // Regular user login
       await login(email, password);
     } catch (err: any) {
       setError(err.message || "Invalid email or password");
