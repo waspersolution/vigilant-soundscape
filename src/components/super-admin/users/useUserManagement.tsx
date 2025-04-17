@@ -29,17 +29,26 @@ export default function useUserManagement() {
     setIsLoading(true);
     try {
       console.log("Fetching users...");
-      // Use a simple query to avoid recursion in RLS policies
+      
+      // Fetch communities first if not already loaded
+      if (communities.length === 0) {
+        await fetchCommunities();
+      }
+      
+      // Fetch profiles directly without checking role
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name, email, role, community_id, online_status, last_location');
 
       if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
         throw profilesError;
       }
 
-      // Get communities data to map community IDs to names
-      const transformedUsers: UserWithCommunity[] = profilesData.map(profile => {
+      console.log("Profiles fetched:", profilesData?.length || 0);
+      
+      // Transform the data to match our UserWithCommunity type
+      const transformedUsers: UserWithCommunity[] = profilesData?.map(profile => {
         // Find matching community
         const community = communities.find(c => c.id === profile.community_id);
         
@@ -53,7 +62,7 @@ export default function useUserManagement() {
           lastLocation: profile.last_location as any,
           communityName: community ? community.name : undefined
         };
-      });
+      }) || [];
 
       setUsers(transformedUsers);
       console.log("Users fetched successfully:", transformedUsers.length);
@@ -72,10 +81,12 @@ export default function useUserManagement() {
         .select('id, name');
 
       if (error) {
+        console.error('Error fetching communities:', error);
         throw error;
       }
 
       setCommunities(data || []);
+      console.log("Communities fetched:", data?.length || 0);
     } catch (error) {
       console.error('Error fetching communities:', error);
       toast.error('Failed to load communities');
@@ -115,21 +126,23 @@ export default function useUserManagement() {
         if (error) throw error;
         toast.success('User updated successfully');
       } else {
-        // Create new user - simplified implementation for demo
-        // In a real app, you would use Auth API or Admin API
-        const { data: newUser, error } = await supabase
+        // Create new user - For demo purposes we're creating a profile entry
+        // In a real production app with auth, you would use Supabase Auth Admin API
+        const uniqueId = crypto.randomUUID();
+        
+        const { error } = await supabase
           .from('profiles')
           .insert({
+            id: uniqueId,
             full_name: data.fullName,
             email: data.email,
             role: data.role,
             community_id: data.communityId === 'none' ? null : data.communityId || null,
-            id: crypto.randomUUID(), // Generate a UUID for demo purposes
-          })
-          .select();
+          });
 
         if (error) throw error;
         toast.success('User created successfully');
+        toast.info('Note: In production, user creation would use Supabase Auth API');
       }
       
       setUserDialogOpen(false);

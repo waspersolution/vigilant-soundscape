@@ -41,7 +41,7 @@ export default function UserFormDialog({
       fullName: '',
       email: '',
       role: 'member' as Database["public"]["Enums"]["user_role"],
-      communityId: '',
+      communityId: 'none',
     }
   });
 
