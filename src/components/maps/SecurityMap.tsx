@@ -396,7 +396,7 @@ export default function SecurityMap() {
         
         // Process for map display
         const patrolFeatures = data
-          .filter(patrol => Array.isArray(patrol.route_data) && patrol.route_data.length > 1)
+          .filter(patrol => patrol.route_data && Array.isArray(patrol.route_data) && patrol.route_data.length > 1)
           .map(patrol => ({
             type: "Feature",
             properties: {
@@ -406,10 +406,12 @@ export default function SecurityMap() {
             },
             geometry: {
               type: "LineString",
-              coordinates: patrol.route_data.map((point: any) => [
-                point.longitude,
-                point.latitude
-              ])
+              coordinates: Array.isArray(patrol.route_data) 
+                ? patrol.route_data.map((point: any) => [
+                    point.longitude,
+                    point.latitude
+                  ])
+                : []
             }
           }));
 
