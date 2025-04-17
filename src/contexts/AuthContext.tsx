@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -31,7 +31,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserWithRole | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,16 +49,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (currentSession) {
           console.log("Auth state changed - User metadata:", currentSession.user.user_metadata);
           
-          // Extract role from user metadata first (for freshly logged in users)
+          // Extract role from user metadata first
           const metadataRole = currentSession.user.user_metadata?.role as UserRole;
+          const fullName = currentSession.user.user_metadata?.full_name || 'User';
           
           // Create initial user object with metadata
           const userWithRole: UserWithRole = {
             ...currentSession.user,
             role: metadataRole || 'member',
-            fullName: currentSession.user.user_metadata?.full_name || 'User'
+            fullName: fullName
           };
           
+          console.log("Setting user with role:", userWithRole.role);
           setUser(userWithRole);
           setIsLoading(false);
         } else {
@@ -89,15 +91,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           // Extract role from user metadata
           const metadataRole = initialSession.user.user_metadata?.role as UserRole;
+          const fullName = initialSession.user.user_metadata?.full_name || 'User';
           
           const userWithRole: UserWithRole = {
             ...initialSession.user,
             role: metadataRole || 'member',
-            fullName: initialSession.user.user_metadata?.full_name || 'User'
+            fullName: fullName
           };
           
-          setUser(userWithRole);
           console.log("User with role set:", userWithRole);
+          setUser(userWithRole);
           setIsLoading(false);
         } else {
           // No active session
@@ -187,6 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: any) {
       console.error("Logout error:", error);
       toast.error(error.message || "Failed to logout");
+      throw error;
     }
   };
 
@@ -200,10 +204,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   
   console.log("Auth context value:", { 
-    user: !!user, 
-    isLoading, 
-    isAuthenticated: !!user,
-    userRole: user?.role
+    user: user?.email,
+    role: user?.role,
+    isAuthenticated: !!user 
   });
 
   return (

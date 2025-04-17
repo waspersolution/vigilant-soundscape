@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, RadioTower, Settings, Bell, User, LogOut, MessageCircle, Database } from "lucide-react";
 
@@ -8,31 +8,13 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import {
-  MapPin,
-  BadgeCheck,
-  AlertTriangle,
-  Users,
-} from "lucide-react";
 
 const MobileNav = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-
   const [open, setOpen] = useState(false);
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/auth");
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
-  };
-
-  // Base navigation items
-  const navItems = [
+  const [navItems, setNavItems] = useState([
     {
       href: "/map",
       icon: <MapPin className="h-5 w-5" />,
@@ -58,22 +40,74 @@ const MobileNav = () => {
       icon: <MessageCircle className="h-5 w-5" />,
       title: "Communication",
     },
-  ];
+  ]);
 
-  // Add super admin link if user has the role
-  if (user?.role === 'super_admin') {
-    navItems.push({
-      href: "/super-admin",
-      icon: <Database className="h-5 w-5" />,
-      title: "Admin",
-    });
-  }
+  // Update navItems when user changes
+  useEffect(() => {
+    const baseNavItems = [
+      {
+        href: "/map",
+        icon: <MapPin className="h-5 w-5" />,
+        title: "Map",
+      },
+      {
+        href: "/patrol",
+        icon: <BadgeCheck className="h-5 w-5" />,
+        title: "Patrol",
+      },
+      {
+        href: "/alerts",
+        icon: <AlertTriangle className="h-5 w-5" />,
+        title: "Alerts",
+      },
+      {
+        href: "/community",
+        icon: <Users className="h-5 w-5" />,
+        title: "Community",
+      },
+      {
+        href: "/communication",
+        icon: <MessageCircle className="h-5 w-5" />,
+        title: "Communication",
+      },
+    ];
+    
+    const updatedNavItems = [...baseNavItems];
+    
+    // Add admin link if user is super_admin
+    if (user?.role === 'super_admin') {
+      console.log("Adding admin link to mobile nav");
+      const adminExists = updatedNavItems.some(item => item.href === "/super-admin");
+      
+      if (!adminExists) {
+        updatedNavItems.push({
+          href: "/super-admin",
+          icon: <Database className="h-5 w-5" />,
+          title: "Admin",
+        });
+      }
+    }
+    
+    setNavItems(updatedNavItems);
+  }, [user]);
+
+  console.log("MobileNav rendering with user role:", user?.role);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/auth");
+      setOpen(false);
+    } catch (error) {
+      console.error("Error logging out", error);
+    }
+  };
 
   return (
-    <div className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px]">
+    <div className="flex h-14 items-center justify-between border-b bg-background px-4 lg:px-6 md:hidden">
       <Link
         to="/"
-        className="hidden gap-1 font-semibold uppercase lg:inline-flex"
+        className="flex items-center gap-1 font-semibold"
       >
         VigilPro
       </Link>
@@ -85,35 +119,7 @@ const MobileNav = () => {
         <Menu className="h-6 w-6" />
         <span className="sr-only">Toggle navigation menu</span>
       </button>
-      <div className="flex w-full flex-1 items-center gap-1 lg:gap-2">
-        {navItems.map((item, index) => (
-          <Button
-            key={index}
-            variant={pathname === item.href ? "default" : "ghost"}
-            className={pathname === item.href ? "" : "text-muted-foreground"}
-            asChild
-          >
-            <Link to={item.href}>
-              {item.icon}
-              <span className="ml-2 hidden lg:inline-flex">{item.title}</span>
-            </Link>
-          </Button>
-        ))}
-        <Button
-          variant={pathname === "/voice" ? "default" : "ghost"}
-          className={pathname === "/voice" ? "" : "text-muted-foreground"}
-          asChild
-        >
-          <Link to="/voice">
-            <RadioTower className="h-5 w-5" />
-            <span className="ml-2 hidden lg:inline-flex">Voice</span>
-          </Link>
-        </Button>
-      </div>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
-          <span className="hidden">Open mobile navigation</span>
-        </SheetTrigger>
         <SheetContent side="left" className="w-60 sm:max-w-xs">
           <Link
             to="/"
@@ -153,51 +159,62 @@ const MobileNav = () => {
                   <span className="ml-2">Voice</span>
                 </Link>
               </Button>
-            </div>
-            <div className="flex flex-col gap-3">
-              <Button variant="ghost" className="justify-start px-2" asChild>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "justify-start px-2",
+                  pathname === "/settings" && "bg-muted"
+                )}
+                asChild
+              >
                 <Link to="/settings" onClick={() => setOpen(false)}>
                   <Settings className="h-5 w-5" />
                   <span className="ml-2">Settings</span>
                 </Link>
               </Button>
-              <Button variant="ghost" className="justify-start px-2">
-                <Bell className="h-5 w-5" />
-                <span className="ml-2">Notifications</span>
-              </Button>
-              {isAuthenticated && user ? (
-                <>
-                  <Button variant="ghost" className="justify-start px-2" asChild>
-                    <Link to="/profile" onClick={() => setOpen(false)}>
-                      <User className="h-5 w-5" />
-                      <span className="ml-2">Profile</span>
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="justify-start px-2"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="h-5 w-5" />
-                    <span className="ml-2">Logout</span>
-                  </Button>
-                </>
-              ) : null}
             </div>
+            
+            {isAuthenticated && (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2 px-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="https://github.com/shadcn.png" alt="User" />
+                    <AvatarFallback>{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{user?.fullName}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {user?.role === 'super_admin' ? 'Admin' : 'Member'}
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  className="justify-start px-2 text-destructive"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span className="ml-2">Logout</span>
+                </Button>
+              </div>
+            )}
           </nav>
         </SheetContent>
       </Sheet>
-      {isAuthenticated && user ? (
-        <div className="flex items-center gap-2">
-          <Bell className="h-5 w-5 lg:hidden" />
-          <Avatar className="h-9 w-9">
-            <AvatarImage src="https://github.com/shadcn.png" alt="Avatar" />
-            <AvatarFallback>{user.fullName?.substring(0, 2).toUpperCase() || 'U'}</AvatarFallback>
-          </Avatar>
+      {isAuthenticated && (
+        <div className="flex items-center gap-4">
+          <Link to="/settings">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src="https://github.com/shadcn.png" alt="User" />
+              <AvatarFallback>{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
+            </Avatar>
+          </Link>
         </div>
-      ) : null}
+      )}
     </div>
   );
-};
+}
+
+import { AlertTriangle, MapPin, BadgeCheck, Users } from "lucide-react";
 
 export default MobileNav;

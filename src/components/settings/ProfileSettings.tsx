@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,16 @@ export default function ProfileSettings() {
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   console.log("Current user in ProfileSettings:", user);
+
+  // Update form when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        fullName: user.fullName || "",
+        email: user.email || ""
+      });
+    }
+  }, [user]);
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -116,6 +126,17 @@ export default function ProfileSettings() {
     navigate("/auth");
   };
 
+  // Function to format role display
+  const formatRole = (role: string | undefined) => {
+    if (!role) return 'member';
+    
+    // Convert role to title case (e.g., 'super_admin' to 'Super Admin')
+    return role
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   return (
     <div className="space-y-6">
       {/* Personal Information */}
@@ -157,7 +178,7 @@ export default function ProfileSettings() {
             <Label htmlFor="role">Role</Label>
             <Input
               id="role"
-              value={user?.role || "member"}
+              value={formatRole(user?.role)}
               disabled
             />
             {user?.role === 'super_admin' && (

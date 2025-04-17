@@ -1,5 +1,5 @@
 
-import React, { ReactNode, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileNav from "./MobileNav";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
@@ -16,6 +16,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const { isAuthenticated, user } = useAuth();
   const location = useLocation();
   const isMobile = useIsMobile();
+
+  console.log("Current user in AppLayout:", user);
 
   useEffect(() => {
     try {
@@ -52,8 +54,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
   console.log("Current user role:", user?.role);
   if (user?.role === 'super_admin') {
     console.log("Adding super admin link to navigation");
-    // Use the spread operator to create a new array instead of modifying the existing one
-    navItems.push({ href: "/super-admin", icon: Database, label: "Admin Dashboard" });
+    // Create a new array instead of modifying the existing one
+    const adminItem = { href: "/super-admin", icon: Database, label: "Admin Dashboard" };
+    
+    // Check if the admin item is already in the array to avoid duplicates
+    const adminExists = navItems.some(item => item.href === "/super-admin");
+    if (!adminExists) {
+      navItems.push(adminItem);
+    }
   }
 
   return (
@@ -72,7 +80,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {navItems.map((item) => (
-                      <SidebarMenuItem key={item.label}>
+                      <SidebarMenuItem key={item.href}>
                         <SidebarMenuButton asChild active={location.pathname === item.href}>
                           <Link to={item.href} className="flex items-center gap-2">
                             <item.icon className="h-5 w-5" />
@@ -86,22 +94,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
               </SidebarGroup>
             </SidebarContent>
             <SidebarFooter>
-              <div className="px-3 py-2 text-center">
-                <p className="text-xs text-muted-foreground">
-                  VigilPro v1.0 by{' '}
-                  <Link 
-                    to="https://waspersolution.com/community" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="hover:text-primary transition-colors underline"
-                  >
-                    Wasper Solutions
-                  </Link>
-                </p>
+              <div className="text-center p-2 text-xs text-muted-foreground">
+                <Link 
+                  to="https://waspersolution.com/community" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="hover:text-primary transition-colors"
+                >
+                  Developed by Wasper Solutions
+                </Link>
                 {user && (
-                  <p className="text-xs font-medium mt-1">
+                  <p className="mt-1">
                     Logged in as {user.fullName}
-                    {user.role === 'super_admin' && ' (Super Admin)'}
+                    {user.role === 'super_admin' && ' (Admin)'}
                   </p>
                 )}
               </div>
@@ -112,28 +117,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <div className="flex-1 relative">
           <MobileNav />
           
-          <main className="flex-1 pt-14 pb-16 min-h-screen">
-            <div className="container mx-auto px-4 py-4">
+          <main className="pb-16 md:pb-0 min-h-screen">
+            <div className="container px-4 py-4 md:py-8">
               {children}
             </div>
           </main>
           
-          <div className="fixed bottom-0 left-0 right-0 border-t bg-background md:hidden z-10">
-            <div className="flex items-center justify-around">
-              {navItems.map((item) => (
-                <Link 
-                  key={item.label}
-                  to={item.href} 
-                  className={`flex flex-col items-center p-3 ${location.pathname === item.href ? 'text-primary' : 'text-muted-foreground'}`}
-                >
-                  <item.icon className="h-5 w-5 mb-1" />
-                  <span className="text-xs">{item.label}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <footer className="absolute bottom-0 w-full text-center p-2 text-xs text-muted-foreground bg-background/50 backdrop-blur-sm">
+          <footer className="absolute bottom-0 w-full text-center p-2 text-xs text-muted-foreground bg-background/50 backdrop-blur-sm md:hidden">
             <Link 
               to="https://waspersolution.com/community" 
               target="_blank" 
