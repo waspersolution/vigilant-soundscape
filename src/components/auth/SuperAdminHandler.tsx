@@ -25,7 +25,7 @@ class SuperAdminHandler {
       if (signInData.user) {
         console.log("Super admin user found, logging in:", signInData.user.id);
         
-        // Update user metadata with super_admin role
+        // Force update user metadata with super_admin role
         try {
           console.log("Updating user metadata with super_admin role");
           const { error: metadataError } = await supabase.auth.updateUser({
@@ -39,33 +39,25 @@ class SuperAdminHandler {
             console.error("Metadata update error:", metadataError);
             // Continue anyway as we at least authenticated successfully
           } else {
-            console.log("User metadata updated successfully");
+            console.log("User metadata updated successfully with role: super_admin");
             toast.success("Super admin login successful");
             
-            // Refresh the session to get updated metadata
+            // Refresh the session with updated metadata
             const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-            if (!refreshError) {
-              console.log("Session refreshed with updated metadata");
+            console.log("Session refreshed:", refreshData?.session ? "success" : "failed");
+            console.log("Updated user metadata:", refreshData?.user?.user_metadata);
+            
+            if (refreshError) {
+              console.error("Session refresh error:", refreshError);
             }
           }
         } catch (updateError: any) {
           console.error("Metadata update exception:", updateError);
-          // Continue anyway as we at least authenticated successfully
         }
         
         if (onSuperAdminSignup) {
           onSuperAdminSignup();
         }
-        return;
-      }
-      
-      // Handle the case where user doesn't exist due to email not being confirmed
-      if (signInError?.message === "Email not confirmed") {
-        console.log("Email not confirmed, checking if user exists");
-        
-        // Check if user needs to confirm email
-        toast.info("Your account exists but email is not confirmed. Please check your email for confirmation link or try again later.");
-        if (onFinish) onFinish();
         return;
       }
       
@@ -115,6 +107,7 @@ class SuperAdminHandler {
         
         if (signUpData.user) {
           console.log("Super admin created successfully:", signUpData.user.id);
+          console.log("User metadata:", signUpData.user.user_metadata);
           toast.success("Super admin created successfully - check your email for confirmation");
           
           if (onSuperAdminSignup) {

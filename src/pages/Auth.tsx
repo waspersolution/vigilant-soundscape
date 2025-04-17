@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -34,18 +33,31 @@ export default function Auth() {
   
   // Redirect if already authenticated
   useEffect(() => {
-    console.log("Auth page - Auth state:", { isAuthenticated, isLoading, user });
+    console.log("Auth page - Auth state:", { 
+      isAuthenticated, 
+      isLoading, 
+      userEmail: user?.email,
+      userRole: user?.role 
+    });
     
     if (!isLoading && isAuthenticated) {
-      console.log("User is authenticated in Auth page, redirecting to home");
-      navigate("/", { replace: true });
+      console.log("User is authenticated in Auth page");
+      
+      // Special handling for super admin
+      if (user?.role === "super_admin" || user?.email === "wasperstore@gmail.com") {
+        console.log("Super admin detected, redirecting to super admin dashboard");
+        navigate("/super-admin", { replace: true });
+      } else {
+        console.log("Regular user, redirecting to home");
+        navigate("/home", { replace: true });
+      }
     }
   }, [isAuthenticated, isLoading, navigate, user]);
 
   const handleSuperAdminSignup = () => {
     toast.success("Super Admin logged in successfully!");
     // Force page reload to ensure fresh authentication state
-    window.location.href = "/";
+    window.location.href = "/super-admin";
   };
 
   if (isLoading) {

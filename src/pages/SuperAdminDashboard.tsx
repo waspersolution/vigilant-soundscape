@@ -27,23 +27,61 @@ import SystemAnalytics from "@/components/super-admin/SystemAnalytics";
 import BillingManagement from "@/components/super-admin/BillingManagement";
 import AuditLogs from "@/components/super-admin/AuditLogs";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function SuperAdminDashboard() {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   const [accessChecked, setAccessChecked] = useState(false);
 
+  // Force update user role to super_admin on first load
+  useEffect(() => {
+    const forceUpdateSuperAdminRole = async () => {
+      if (user?.email === "wasperstore@gmail.com") {
+        console.log("SuperAdminDashboard - Forcing super_admin role update");
+        try {
+          const { error } = await supabase.auth.updateUser({
+            data: { 
+              role: 'super_admin',
+              full_name: 'Azeez Wosilat'
+            }
+          });
+          
+          if (error) {
+            console.error("Failed to update super admin role:", error);
+          } else {
+            console.log("Super admin role enforced successfully");
+            
+            // Refresh session to get updated metadata
+            const { data } = await supabase.auth.refreshSession();
+            if (data.session) {
+              console.log("Session refreshed with updated role");
+              window.location.reload(); // Force full page reload to get updated role
+            }
+          }
+        } catch (err) {
+          console.error("Error enforcing super admin role:", err);
+        }
+      }
+    };
+    
+    if (!isLoading && user && user.email === "wasperstore@gmail.com" && user.role !== "super_admin") {
+      forceUpdateSuperAdminRole();
+    }
+  }, [isLoading, user]);
+
   // Redirect if not a super admin
   useEffect(() => {
     console.log("SuperAdminDashboard - Auth check starting");
     console.log("SuperAdminDashboard - User:", user);
     console.log("SuperAdminDashboard - User role:", user?.role);
+    console.log("SuperAdminDashboard - User email:", user?.email);
     console.log("SuperAdminDashboard - isLoading:", isLoading);
     
     // Only run access check once authentication has loaded
     if (!isLoading) {
-      if (user?.role === "super_admin") {
-        console.log("SuperAdminDashboard - User is confirmed super admin, allowing access");
+      if (user?.role === "super_admin" || user?.email === "wasperstore@gmail.com") {
+        console.log("SuperAdminDashboard - User is confirmed super admin or has super admin email, allowing access");
         setAccessChecked(true);
       } else {
         console.log("SuperAdminDashboard - User is NOT a super admin, redirecting to home");

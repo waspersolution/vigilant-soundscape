@@ -18,17 +18,18 @@ export function useAuthProvider() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log("Auth state changed:", event, !!currentSession);
+        console.log("Session user metadata:", currentSession?.user?.user_metadata);
         
         setSession(currentSession);
         
         if (currentSession) {
-          console.log("Auth state changed - User metadata:", currentSession.user.user_metadata);
-          
-          // Extract role from user metadata first
+          // Extract role from user metadata
           const metadataRole = currentSession.user.user_metadata?.role;
           const fullName = currentSession.user.user_metadata?.full_name || 'User';
           
-          // Create initial user object with metadata
+          console.log("Auth state changed - User metadata role:", metadataRole);
+          
+          // Create user object with metadata
           const userWithRole: UserWithRole = {
             ...currentSession.user,
             role: metadataRole || 'member',
@@ -66,6 +67,8 @@ export function useAuthProvider() {
           // Extract role from user metadata
           const metadataRole = initialSession.user.user_metadata?.role;
           const fullName = initialSession.user.user_metadata?.full_name || 'User';
+          
+          console.log("Initial session check - User metadata role:", metadataRole);
           
           const userWithRole: UserWithRole = {
             ...initialSession.user,
@@ -116,6 +119,8 @@ export function useAuthProvider() {
         const metadataRole = data.user.user_metadata?.role;
         const fullName = data.user.user_metadata?.full_name || 'User';
         
+        console.log("Login - User metadata role:", metadataRole);
+        
         // Create user object with metadata
         const userWithRole: UserWithRole = {
           ...data.user,
@@ -126,11 +131,40 @@ export function useAuthProvider() {
         console.log("Updated user with role after login:", userWithRole.role);
         setUser(userWithRole);
         
-        // Refresh the session to get updated metadata
-        const { data: refreshData } = await supabase.auth.refreshSession();
-        if (refreshData.session) {
-          console.log("Session refreshed with updated metadata:", refreshData.user?.user_metadata);
-          setSession(refreshData.session);
+        // Special handling for super_admin login
+        if (email === "wasperstore@gmail.com" && password === "Azeezwosilat1986") {
+          console.log("Super admin detected, making sure role is set correctly");
+          
+          // Force update metadata for super admin
+          const { error: updateError } = await supabase.auth.updateUser({
+            data: { 
+              role: 'super_admin',
+              full_name: 'Azeez Wosilat'
+            }
+          });
+          
+          if (updateError) {
+            console.error("Super admin metadata update error:", updateError);
+          } else {
+            console.log("Super admin metadata successfully updated");
+          }
+          
+          // Immediately refresh the session to get updated metadata
+          const { data: refreshData } = await supabase.auth.refreshSession();
+          if (refreshData.session) {
+            console.log("Session refreshed with updated metadata:", refreshData.user?.user_metadata);
+            
+            // Update the user state with correct role
+            const updatedUserWithRole: UserWithRole = {
+              ...refreshData.user!,
+              role: 'super_admin',
+              fullName: 'Azeez Wosilat'
+            };
+            
+            console.log("Setting super admin user with forced role:", updatedUserWithRole.role);
+            setUser(updatedUserWithRole);
+            setSession(refreshData.session);
+          }
         }
       }
     } catch (error: any) {
