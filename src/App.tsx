@@ -1,8 +1,9 @@
+
 import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import { Toaster } from "sonner";
 
 import AppLayout from "@/components/layout/AppLayout";
@@ -32,7 +33,7 @@ function App() {
               router={createBrowserRouter([
                 {
                   path: "/",
-                  element: <AppLayout />,
+                  element: <AppLayout><Outlet /></AppLayout>,
                   errorElement: <NotFound />,
                   children: [
                     { path: "/", element: <Home /> },
@@ -41,7 +42,7 @@ function App() {
                     { path: "/alerts", element: <Alerts /> },
                     { path: "/community", element: <Community /> },
                     { path: "/settings", element: <Settings /> },
-                    { path: "/voice", element: <Voice /> }, // Add the Voice route
+                    { path: "/voice", element: <Voice /> },
                   ],
                 },
                 {

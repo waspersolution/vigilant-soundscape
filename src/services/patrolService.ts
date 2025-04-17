@@ -29,6 +29,8 @@ export const fetchActivePatrol = async (userId: string): Promise<PatrolSession |
       missedAwakeChecks: data.missed_awake_checks || 0,
       totalDistance: data.total_distance || 0,
       status: data.status as PatrolSession['status'],
+      createdAt: data.created_at || new Date().toISOString(),
+      updatedAt: data.updated_at || new Date().toISOString()
     };
   } catch (error) {
     console.error("Error fetching active patrol:", error);
@@ -64,6 +66,8 @@ export const fetchPastPatrols = async (userId: string): Promise<PatrolSession[]>
       missedAwakeChecks: patrol.missed_awake_checks || 0,
       totalDistance: patrol.total_distance || 0,
       status: patrol.status as PatrolSession['status'],
+      createdAt: patrol.created_at || patrol.start_time, 
+      updatedAt: patrol.updated_at || patrol.end_time || patrol.start_time
     }));
   } catch (error) {
     console.error("Error fetching past patrols:", error);
@@ -76,6 +80,7 @@ export const createPatrol = async (user: User): Promise<PatrolSession | null> =>
   if (!user?.id || !user?.communityId) return null;
   
   try {
+    const now = new Date().toISOString();
     const newPatrol = {
       guard_id: user.id,
       community_id: user.communityId,
@@ -83,6 +88,8 @@ export const createPatrol = async (user: User): Promise<PatrolSession | null> =>
       route_data: [],
       missed_awake_checks: 0,
       total_distance: 0,
+      created_at: now,
+      updated_at: now
     };
 
     const { data, error } = await supabase
@@ -106,6 +113,8 @@ export const createPatrol = async (user: User): Promise<PatrolSession | null> =>
       missedAwakeChecks: data.missed_awake_checks || 0,
       totalDistance: data.total_distance || 0,
       status: data.status as PatrolSession['status'],
+      createdAt: data.created_at || now,
+      updatedAt: data.updated_at || now
     };
   } catch (error) {
     console.error("Error creating patrol:", error);

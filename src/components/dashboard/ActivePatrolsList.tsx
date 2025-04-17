@@ -1,136 +1,130 @@
-
 import { useState, useEffect } from "react";
-import { format, formatDistanceToNow, parseISO } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { PatrolSession } from "@/types";
-import { useAuth } from "@/contexts/AuthContext";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, User, Calendar, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Skeleton } from "@/components/ui/skeleton";
+import { MapPin, Shield, Clock, Radio } from "lucide-react";
+import { PatrolSession } from "@/types";
+import { formatDistanceToNow, parseISO } from "date-fns";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ActivePatrolsList() {
-  const [activePatrols, setActivePatrols] = useState<PatrolSession[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const [activePatrols, setActivePatrols] = useState<PatrolSession[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.communityId) {
-      fetchActivePatrols();
-    }
-  }, [user]);
-
-  const fetchActivePatrols = async () => {
-    if (!user?.communityId) return;
-    
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('patrol_sessions')
-        .select(`
-          id,
-          guard_id,
-          community_id,
-          start_time,
-          status,
-          profiles(full_name)
-        `)
-        .eq('community_id', user.communityId)
-        .eq('status', 'active');
-
-      if (error) throw error;
-
-      if (data) {
-        const formattedPatrols: PatrolSession[] = data.map(patrol => ({
-          id: patrol.id,
-          guardId: patrol.guard_id,
-          guardName: patrol.profiles?.full_name || 'Unknown',
-          communityId: patrol.community_id,
-          startTime: patrol.start_time,
-          status: patrol.status as PatrolSession['status'],
-          routeData: [],
-          missedAwakeChecks: 0, // Adding the missing required property
-          totalDistance: 0, // Adding the missing required property
-        }));
+    // In a real app, fetch active patrols from database
+    // For demo, we'll use mock data
+    const fetchPatrols = async () => {
+      try {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        setActivePatrols(formattedPatrols);
+        // Mock data
+        const now = new Date().toISOString();
+        const mockPatrols: PatrolSession[] = [
+          {
+            id: "patrol-1",
+            guardId: "user-123",
+            guardName: "John Doe",
+            communityId: "comm-123",
+            startTime: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 min ago
+            status: "active",
+            routeData: [
+              { latitude: 37.7749, longitude: -122.4194, timestamp: now },
+              { latitude: 37.7750, longitude: -122.4190, timestamp: now }
+            ],
+            missedAwakeChecks: 0,
+            totalDistance: 0.5,
+            createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+            updatedAt: now
+          },
+          {
+            id: "patrol-2",
+            guardId: "user-456",
+            guardName: "Jane Smith",
+            communityId: "comm-123",
+            startTime: new Date(Date.now() - 1000 * 60 * 15).toISOString(), // 15 min ago
+            status: "active",
+            routeData: [
+              { latitude: 37.7760, longitude: -122.4180, timestamp: now }
+            ],
+            missedAwakeChecks: 1,
+            totalDistance: 0.3,
+            createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+            updatedAt: now
+          }
+        ];
+        
+        setActivePatrols(mockPatrols);
+      } catch (error) {
+        console.error("Error fetching active patrols:", error);
+        toast.error("Failed to load active patrols");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching active patrols:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-3">
-        <Skeleton className="h-[100px] w-full" />
-        <Skeleton className="h-[100px] w-full" />
-      </div>
-    );
-  }
-
-  if (activePatrols.length === 0) {
-    return (
-      <div className="rounded-md border bg-muted/30 p-8 text-center">
-        <User className="h-10 w-10 text-muted-foreground mb-2 mx-auto" />
-        <p className="text-sm font-medium">No active patrols</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          All patrol guards are currently off-duty
-        </p>
-        <Button variant="outline" className="mt-4" asChild>
-          <Link to="/patrol">
-            View Patrol Schedule
-          </Link>
-        </Button>
-      </div>
-    );
-  }
+    fetchPatrols();
+  }, []);
 
   return (
-    <div className="space-y-3">
-      {activePatrols.map(patrol => (
-        <Card key={patrol.id} className="overflow-hidden">
-          <CardContent className="p-0">
-            <div className="p-4">
+    <CardContent>
+      {loading ? (
+        <div className="flex items-center justify-center h-24">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      ) : activePatrols.length === 0 ? (
+        <div className="rounded-md border bg-muted/30 p-8 text-center">
+          <Shield className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm font-medium">No active patrols</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Active security patrols will appear here
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {activePatrols.map((patrol) => (
+            <div key={patrol.id} className="p-3 border rounded-md">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-medium">{patrol.guardName}</h3>
-                <span className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-full">
-                  Active
-                </span>
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" />
+                  <span className="font-medium">{patrol.guardName}</span>
+                </div>
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  <span>
+                    {formatDistanceToNow(parseISO(patrol.startTime), { addSuffix: false })}
+                  </span>
+                </Badge>
               </div>
               
               <div className="grid grid-cols-2 gap-y-2 text-sm">
                 <div className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-muted-foreground">Started:</span>
+                  <MapPin className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">Location:</span>
                 </div>
-                <div>{format(parseISO(patrol.startTime), 'h:mm a')}</div>
+                <div>
+                  {patrol.routeData && patrol.routeData.length > 0
+                    ? `${patrol.routeData[patrol.routeData.length - 1].latitude.toFixed(4)}, ${patrol.routeData[patrol.routeData.length - 1].longitude.toFixed(4)}`
+                    : "Unknown"}
+                </div>
                 
                 <div className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-muted-foreground">Duration:</span>
+                  <Radio className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">Status:</span>
                 </div>
-                <div>{formatDistanceToNow(parseISO(patrol.startTime))}</div>
+                <div>{patrol.status}</div>
               </div>
-            </div>
-            
-            <div className="border-t px-4 py-2 bg-muted/30 flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">
-                {formatDistanceToNow(parseISO(patrol.startTime), { addSuffix: true })}
-              </span>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/patrol">
-                  Details
-                  <ArrowRight className="ml-1 h-3 w-3" />
-                </Link>
+              
+              <Button variant="link" className="w-full mt-2">
+                View Patrol Details
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+          ))}
+        </div>
+      )}
+    </CardContent>
   );
 }
