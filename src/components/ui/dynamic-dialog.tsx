@@ -24,7 +24,7 @@ export interface DynamicDialogProps {
   inputType?: string;
   inputPlaceholder?: string;
   onInputChange?: (value: string) => void;
-  onSubmit: () => Promise<void>;
+  onSubmit: () => Promise<void> | void;
   submitButtonText: string;
   loadingText: string;
   loading: boolean;
@@ -49,6 +49,13 @@ export default function DynamicDialog({
   loading,
   disabled
 }: DynamicDialogProps) {
+  const handleSubmit = async () => {
+    const result = onSubmit();
+    if (result instanceof Promise) {
+      await result;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
@@ -73,7 +80,7 @@ export default function DynamicDialog({
         </div>
         <DialogFooter>
           <Button 
-            onClick={onSubmit} 
+            onClick={handleSubmit} 
             disabled={loading || disabled}
           >
             {loading ? loadingText : submitButtonText}
