@@ -28,6 +28,7 @@ export default function useUserManagement() {
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
+      // Simplified query to avoid infinite recursion in policy
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -37,12 +38,19 @@ export default function useUserManagement() {
           role,
           community_id,
           online_status,
-          last_location,
-          communities:community_id(name)
+          last_location
         `);
 
       if (error) {
         throw error;
+      }
+
+      // Get communities in a separate query if needed
+      const communityMap = new Map();
+      if (communities.length > 0) {
+        communities.forEach(community => {
+          communityMap.set(community.id, community.name);
+        });
       }
 
       const transformedUsers: UserWithCommunity[] = data.map(profile => ({
@@ -53,7 +61,7 @@ export default function useUserManagement() {
         communityId: profile.community_id || undefined,
         onlineStatus: profile.online_status || false,
         lastLocation: profile.last_location as any,
-        communityName: profile.communities?.name
+        communityName: profile.community_id ? communityMap.get(profile.community_id) : undefined
       }));
 
       setUsers(transformedUsers);

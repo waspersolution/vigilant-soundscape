@@ -145,7 +145,7 @@ export default function UserFormDialog({
                   <FormLabel>Community</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    defaultValue={field.value || undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -153,7 +153,7 @@ export default function UserFormDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">No Community</SelectItem>
+                      <SelectItem value="none">No Community</SelectItem>
                       {communities.map(community => (
                         <SelectItem key={community.id} value={community.id}>
                           {community.name}

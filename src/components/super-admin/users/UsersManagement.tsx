@@ -6,7 +6,7 @@ import UserFormDialog from "./UserFormDialog";
 import DeleteUserDialog from "./DeleteUserDialog";
 import useUserManagement from "./useUserManagement";
 
-export function UsersManagement() {
+export default function UsersManagement() {
   const {
     searchQuery,
     setSearchQuery,
