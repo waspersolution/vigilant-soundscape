@@ -29,6 +29,7 @@ export interface DynamicDialogProps {
   loadingText: string;
   loading: boolean;
   disabled?: boolean;
+  children?: ReactNode;
 }
 
 export default function DynamicDialog({
@@ -47,7 +48,8 @@ export default function DynamicDialog({
   submitButtonText,
   loadingText,
   loading,
-  disabled
+  disabled,
+  children
 }: DynamicDialogProps) {
   const handleSubmit = async () => {
     const result = onSubmit();
@@ -64,20 +66,26 @@ export default function DynamicDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          {inputLabel && onInputChange && (
-            <div className="grid gap-2">
-              <label htmlFor={inputId}>{inputLabel}</label>
-              <Input
-                id={inputId}
-                type={inputType}
-                value={inputValue}
-                onChange={(e) => onInputChange(e.target.value)}
-                placeholder={inputPlaceholder}
-              />
-            </div>
-          )}
-        </div>
+        
+        {children ? (
+          children
+        ) : (
+          <div className="grid gap-4 py-4">
+            {inputLabel && onInputChange && (
+              <div className="grid gap-2">
+                <label htmlFor={inputId}>{inputLabel}</label>
+                <Input
+                  id={inputId}
+                  type={inputType}
+                  value={inputValue}
+                  onChange={(e) => onInputChange(e.target.value)}
+                  placeholder={inputPlaceholder}
+                />
+              </div>
+            )}
+          </div>
+        )}
+        
         <DialogFooter>
           <Button 
             onClick={handleSubmit} 

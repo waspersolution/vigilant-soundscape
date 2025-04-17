@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,12 +26,10 @@ export default function UsersManagement() {
   const [users, setUsers] = useState<UserWithCommunity[]>([]);
   const [communities, setCommunities] = useState<{id: string, name: string}[]>([]);
   
-  // User creation/edit dialog state
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingUser, setEditingUser] = useState<UserWithCommunity | null>(null);
   
-  // Delete user dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserWithCommunity | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -46,13 +43,11 @@ export default function UsersManagement() {
     }
   });
 
-  // Fetch users and communities on component mount
   useEffect(() => {
     fetchUsers();
     fetchCommunities();
   }, []);
 
-  // Reset form when editing user changes
   useEffect(() => {
     if (editingUser) {
       userForm.reset({
@@ -74,7 +69,6 @@ export default function UsersManagement() {
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      // Fetch profiles with join to communities to get community names
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -92,7 +86,6 @@ export default function UsersManagement() {
         throw error;
       }
 
-      // Transform data to match our User type with community name
       const transformedUsers: UserWithCommunity[] = data.map(profile => ({
         id: profile.id,
         fullName: profile.full_name,
@@ -149,7 +142,6 @@ export default function UsersManagement() {
     setIsSubmitting(true);
     try {
       if (editingUser) {
-        // Update existing user
         const { error } = await supabase
           .from('profiles')
           .update({
@@ -163,17 +155,11 @@ export default function UsersManagement() {
         if (error) throw error;
         toast.success('User updated successfully');
       } else {
-        // This would normally involve creating a user in auth.users,
-        // but for demo purposes we'll just create a profile entry
-        // In a real implementation, you'd use supabase.auth.admin.createUser()
-        // which requires server-side admin access
-        
-        // For now, we'll show a success message without actually creating the user
         toast.success('User creation would be implemented with Supabase Admin API');
       }
       
       setUserDialogOpen(false);
-      fetchUsers(); // Refresh the user list
+      fetchUsers();
     } catch (error: any) {
       console.error('Error saving user:', error);
       toast.error(error.message || 'Failed to save user');
@@ -187,14 +173,9 @@ export default function UsersManagement() {
     
     setIsDeleting(true);
     try {
-      // This would normally involve deleting a user from auth.users,
-      // but for demo purposes we'll just show a success message
-      // In a real implementation, you'd use supabase.auth.admin.deleteUser()
-      
       toast.success('User deletion would be implemented with Supabase Admin API');
       setDeleteDialogOpen(false);
       
-      // Remove the user from the local state to simulate deletion
       setUsers(users.filter(user => user.id !== userToDelete.id));
     } catch (error: any) {
       console.error('Error deleting user:', error);
@@ -204,17 +185,13 @@ export default function UsersManagement() {
     }
   };
 
-  // Filter users based on search query and filters
   const filteredUsers = users.filter(user => {
-    // Search filter
     const matchesSearch = 
       user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase());
     
-    // Role filter
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     
-    // Community filter
     const matchesCommunity = 
       communityFilter === 'all' || 
       (communityFilter === 'none' && !user.communityId) ||
@@ -361,7 +338,6 @@ export default function UsersManagement() {
         </CardContent>
       </Card>
 
-      {/* Create/Edit User Dialog */}
       <FormProvider {...userForm}>
         <DynamicDialog
           open={userDialogOpen}
@@ -468,7 +444,6 @@ export default function UsersManagement() {
         </DynamicDialog>
       </FormProvider>
 
-      {/* Delete User Confirmation Dialog */}
       <DynamicDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
