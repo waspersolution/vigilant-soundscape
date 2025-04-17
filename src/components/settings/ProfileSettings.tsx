@@ -31,7 +31,6 @@ export default function ProfileSettings() {
 
   console.log("Current user in ProfileSettings:", user);
 
-  // Check if this is the super admin account and needs a role update
   useEffect(() => {
     const updateSuperAdminRoleIfNeeded = async () => {
       if (user?.email === "wasperstore@gmail.com" && user.role !== "super_admin") {
@@ -49,10 +48,8 @@ export default function ProfileSettings() {
           } else {
             console.log("Super admin role enforced from ProfileSettings");
             
-            // Refresh session to get updated metadata
             await supabase.auth.refreshSession();
             
-            // Force window reload to ensure all components have latest role
             window.location.reload();
           }
         } catch (err) {
@@ -66,7 +63,6 @@ export default function ProfileSettings() {
     }
   }, [user]);
 
-  // Update form when user data changes
   useEffect(() => {
     if (user) {
       setProfileForm({
@@ -92,7 +88,6 @@ export default function ProfileSettings() {
     setIsSaving(true);
     
     try {
-      // Update profile in Supabase
       const { error } = await supabase
         .from('profiles')
         .update({ 
@@ -105,7 +100,6 @@ export default function ProfileSettings() {
       toast.success("Profile updated successfully");
       setSaveSuccess(true);
       
-      // Hide success message after 3 seconds
       setTimeout(() => {
         setSaveSuccess(false);
       }, 3000);
@@ -118,13 +112,11 @@ export default function ProfileSettings() {
   };
 
   const handleChangePassword = async () => {
-    // Validate password match
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       toast.error("New passwords don't match");
       return;
     }
     
-    // Validate password length
     if (passwordForm.newPassword.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
@@ -141,7 +133,6 @@ export default function ProfileSettings() {
       
       toast.success("Password updated successfully");
       
-      // Reset password form
       setPasswordForm({
         currentPassword: "",
         newPassword: "",
@@ -157,25 +148,21 @@ export default function ProfileSettings() {
 
   const handleLogout = async () => {
     try {
+      console.log("ProfileSettings - Initiating logout");
       await logout();
-      toast.success("Logged out successfully");
-      navigate("/auth");
     } catch (error) {
       console.error("Error during logout:", error);
       toast.error("Failed to logout");
     }
   };
 
-  // Function to format role display
   const formatRole = (role: string | undefined) => {
     if (!role) return 'Member';
     
-    // Special handling for wasperstore@gmail.com
     if (user?.email === "wasperstore@gmail.com") {
       return "Super Admin";
     }
     
-    // Convert role to title case (e.g., 'super_admin' to 'Super Admin')
     return role
       .split('_')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -184,7 +171,6 @@ export default function ProfileSettings() {
 
   return (
     <div className="space-y-6">
-      {/* Personal Information */}
       <Card>
         <CardHeader>
           <CardTitle>Personal Information</CardTitle>
@@ -271,7 +257,6 @@ export default function ProfileSettings() {
         </CardFooter>
       </Card>
       
-      {/* Password Management */}
       <Card>
         <CardHeader>
           <CardTitle>Password Management</CardTitle>
@@ -322,7 +307,6 @@ export default function ProfileSettings() {
         </CardFooter>
       </Card>
       
-      {/* Account Actions */}
       <Card>
         <CardHeader>
           <CardTitle className="text-destructive">Account Actions</CardTitle>

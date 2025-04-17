@@ -15,11 +15,13 @@ const MobileNav = () => {
 
   const handleLogout = async () => {
     try {
+      console.log("MobileNav - Initiating logout");
       await logout();
-      navigate("/auth");
+      // No need to manually navigate - the logout function will redirect
       setOpen(false);
     } catch (error) {
       console.error("Error logging out", error);
+      setOpen(false);
     }
   };
 

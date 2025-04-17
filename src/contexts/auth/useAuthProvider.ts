@@ -238,9 +238,10 @@ export function useAuthProvider() {
         throw error;
       }
       
+      // Clear user state
       setUser(null);
       setSession(null);
-      console.log("Logout successful");
+      console.log("Logout successful - user state cleared");
       toast.success("Logged out successfully");
       
       // Redirect to auth page after logout
