@@ -7,18 +7,23 @@ interface EmergencyContactListProps {
   isEditing: boolean;
   updateContact: (index: number, field: keyof EmergencyContact, value: string | number) => void;
   removeContact: (index: number) => void;
+  emptyStateMessage?: string;
+  showEmptyState?: boolean;
 }
 
 export default function EmergencyContactList({
   contacts,
   isEditing,
   updateContact,
-  removeContact
+  removeContact,
+  emptyStateMessage = "No emergency contacts have been set up yet.",
+  showEmptyState = true
 }: EmergencyContactListProps) {
-  if (contacts.length === 0 && !isEditing) {
+  // Show empty state when there are no contacts and we're not in edit mode
+  if (contacts.length === 0 && !isEditing && showEmptyState) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground mb-4">No emergency contacts have been set up yet.</p>
+        <p className="text-muted-foreground mb-4">{emptyStateMessage}</p>
       </div>
     );
   }
