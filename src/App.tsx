@@ -13,6 +13,7 @@ import Map from "@/pages/Map";
 import Patrol from "@/pages/Patrol";
 import Alerts from "@/pages/Alerts";
 import Community from "@/pages/Community";
+import Communication from "@/pages/Communication";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -41,6 +42,8 @@ function App() {
                     { path: "/patrol", element: <Patrol /> },
                     { path: "/alerts", element: <Alerts /> },
                     { path: "/community", element: <Community /> },
+                    { path: "/communication", element: <Communication /> },
+                    { path: "/communication/:channelId", element: <Communication /> },
                     { path: "/settings", element: <Settings /> },
                     { path: "/voice", element: <Voice /> },
                   ],

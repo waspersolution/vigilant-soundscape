@@ -7,6 +7,14 @@ export interface Community {
   subscriptionPlan?: 'basic' | 'premium';
   subscriptionStatus?: 'active' | 'inactive' | 'trial';
   maxMembers?: number;
-  emergencyContacts?: any;
+  emergencyContacts?: EmergencyContact[];
   geoBoundaries?: any;
+}
+
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  phone: string;
+  role: string;
+  priority: number;
 }
