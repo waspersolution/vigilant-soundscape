@@ -14,7 +14,6 @@ import { fetchChannels, fetchDirectMessages } from "@/services/communicationServ
 import ChannelList from "@/components/communication/ChannelList";
 import DirectMessagesList from "@/components/communication/DirectMessagesList";
 import MessagePanel from "@/components/communication/MessagePanel";
-import EmergencyContacts from "@/components/communication/EmergencyContacts";
 import AnnouncementPanel from "@/components/communication/AnnouncementPanel";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -69,10 +68,9 @@ export default function Communication() {
         {/* Left sidebar: Channels and DMs */}
         <Card className="p-4 md:col-span-1">
           <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-3 mb-4">
+            <TabsList className="grid grid-cols-2 mb-4">
               <TabsTrigger value="channels">Channels</TabsTrigger>
               <TabsTrigger value="direct">Direct</TabsTrigger>
-              <TabsTrigger value="emergency">Emergency</TabsTrigger>
             </TabsList>
             
             <TabsContent value="channels" className="mt-0">
@@ -89,10 +87,6 @@ export default function Communication() {
                 selectedChannelId={selectedChannel?.id}
                 onSelectChannel={handleChannelSelect}
               />
-            </TabsContent>
-            
-            <TabsContent value="emergency" className="mt-0">
-              <EmergencyContacts />
             </TabsContent>
           </Tabs>
         </Card>

@@ -4,7 +4,8 @@ import ProfileSettings from "@/components/settings/ProfileSettings";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import PrivacySettings from "@/components/settings/PrivacySettings";
 import DashboardSettings from "@/components/settings/DashboardSettings";
-import { Bell, Layout, ShieldAlert, User } from "lucide-react";
+import EmergencyContactsSettings from "@/components/settings/EmergencyContactsSettings";
+import { Bell, Layout, ShieldAlert, User, Phone } from "lucide-react";
 
 export function SettingsTabs() {
   return (
@@ -23,6 +24,10 @@ export function SettingsTabs() {
             <ShieldAlert className="h-4 w-4" />
             <span className="hidden sm:inline">Privacy</span>
           </TabsTrigger>
+          <TabsTrigger value="emergency" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
+            <Phone className="h-4 w-4" />
+            <span className="hidden sm:inline">Emergency</span>
+          </TabsTrigger>
           <TabsTrigger value="dashboard" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
             <Layout className="h-4 w-4" />
             <span className="hidden sm:inline">Dashboard</span>
@@ -40,6 +45,10 @@ export function SettingsTabs() {
       
       <TabsContent value="privacy" className="animate-fade-in shield-pattern">
         <PrivacySettings />
+      </TabsContent>
+
+      <TabsContent value="emergency" className="animate-fade-in shield-pattern">
+        <EmergencyContactsSettings />
       </TabsContent>
       
       <TabsContent value="dashboard" className="animate-fade-in shield-pattern">
