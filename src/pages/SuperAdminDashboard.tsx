@@ -31,7 +31,7 @@ import { toast } from "sonner";
 export default function SuperAdminDashboard() {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [accessChecked, setAccessChecked] = useState(false);
 
   // Redirect if not a super admin
   useEffect(() => {
@@ -40,32 +40,23 @@ export default function SuperAdminDashboard() {
     console.log("SuperAdminDashboard - User role:", user?.role);
     console.log("SuperAdminDashboard - isLoading:", isLoading);
     
+    // Only run access check once authentication has loaded
     if (!isLoading) {
-      if (user && user.role === "super_admin") {
-        console.log("SuperAdminDashboard - User is a super admin");
-        setIsSuperAdmin(true);
+      if (user?.role === "super_admin") {
+        console.log("SuperAdminDashboard - User is confirmed super admin, allowing access");
+        setAccessChecked(true);
       } else {
         console.log("SuperAdminDashboard - User is NOT a super admin, redirecting to home");
-        if (user) {
-          console.log("SuperAdminDashboard - User role:", user.role);
-        }
+        console.log("SuperAdminDashboard - User email:", user?.email);
+        console.log("SuperAdminDashboard - User role:", user?.role);
         toast.error("You don't have permission to access this page");
-        navigate("/home");
+        navigate("/home", { replace: true });
       }
     }
   }, [user, isLoading, navigate]);
 
   // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  // If not a super admin, this will render before redirecting
-  if (!isSuperAdmin) {
+  if (isLoading || !accessChecked) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>

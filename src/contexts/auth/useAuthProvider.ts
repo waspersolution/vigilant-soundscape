@@ -37,12 +37,11 @@ export function useAuthProvider() {
           
           console.log("Setting user with role:", userWithRole.role);
           setUser(userWithRole);
-          setIsLoading(false);
         } else {
           setUser(null);
-          setIsLoading(false);
           console.log("No session in auth change, setting user to null");
         }
+        setIsLoading(false);
       }
     );
 
@@ -74,14 +73,13 @@ export function useAuthProvider() {
             fullName: fullName
           };
           
-          console.log("User with role set:", userWithRole);
+          console.log("User with role set:", userWithRole.role);
           setUser(userWithRole);
-          setIsLoading(false);
         } else {
           // No active session
           console.log("No active session found");
-          setIsLoading(false);
         }
+        setIsLoading(false);
       } catch (err) {
         console.error("Auth state initialization error:", err);
         setIsLoading(false);
@@ -125,8 +123,15 @@ export function useAuthProvider() {
           fullName: fullName
         };
         
-        console.log("Updated user with role after login:", userWithRole);
+        console.log("Updated user with role after login:", userWithRole.role);
         setUser(userWithRole);
+        
+        // Refresh the session to get updated metadata
+        const { data: refreshData } = await supabase.auth.refreshSession();
+        if (refreshData.session) {
+          console.log("Session refreshed with updated metadata:", refreshData.user?.user_metadata);
+          setSession(refreshData.session);
+        }
       }
     } catch (error: any) {
       console.error("Login error:", error);

@@ -2,13 +2,19 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
+import { toast } from "sonner";
 
 export default function Index() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   
   useEffect(() => {
-    console.log("Index page - Auth state:", { isAuthenticated, isLoading });
+    console.log("Index page - Auth state:", { 
+      isAuthenticated, 
+      isLoading, 
+      userEmail: user?.email,
+      userRole: user?.role 
+    });
     
     if (!isLoading) {
       if (isAuthenticated) {
@@ -19,7 +25,7 @@ export default function Index() {
         navigate("/auth", { replace: true });
       }
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, navigate, user]);
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
