@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import MobileNavMenu from "./MobileNavMenu";
 import MobileNavProfile from "./MobileNavProfile";
 

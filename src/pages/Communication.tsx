@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
@@ -15,7 +14,7 @@ import ChannelList from "@/components/communication/ChannelList";
 import DirectMessagesList from "@/components/communication/DirectMessagesList";
 import MessagePanel from "@/components/communication/MessagePanel";
 import AnnouncementPanel from "@/components/communication/AnnouncementPanel";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 
 export default function Communication() {
   const { user } = useAuth();

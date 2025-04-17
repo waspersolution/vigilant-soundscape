@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, Bell, Map, Shield, Users, Radio, MessageCircle, Database, Settings } from "lucide-react";
 import { 
@@ -20,28 +20,33 @@ interface SidebarNavigationProps {
 export default function SidebarNavigation({ user }: SidebarNavigationProps) {
   const location = useLocation();
   
-  // Basic navigation items for all users
-  const navItems = [
-    { href: "/", icon: Home, label: "Home" },
-    { href: "/alerts", icon: Bell, label: "Alerts" },
-    { href: "/map", icon: Map, label: "Map" },
-    { href: "/patrol", icon: Shield, label: "Patrol" },
-    { href: "/community", icon: Users, label: "Communities" },
-    { href: "/communication", icon: MessageCircle, label: "Communication" },
-    { href: "/voice", icon: Radio, label: "Voice" },
-    { href: "/settings", icon: Settings, label: "Settings" },
-  ];
-
-  // Check for super_admin role and add the admin dashboard link
-  if (user?.role === 'super_admin') {
-    const adminItem = { href: "/super-admin", icon: Database, label: "Admin Dashboard" };
+  // Use useMemo to prevent unnecessary recalculations
+  const navItems = useMemo(() => {
+    console.log("SidebarNavigation - Rebuilding nav items for user role:", user?.role);
     
-    // Check if the admin item is already in the array to avoid duplicates
-    const adminExists = navItems.some(item => item.href === "/super-admin");
-    if (!adminExists) {
-      navItems.push(adminItem);
+    // Basic navigation items for all users
+    const baseItems = [
+      { href: "/", icon: Home, label: "Home" },
+      { href: "/alerts", icon: Bell, label: "Alerts" },
+      { href: "/map", icon: Map, label: "Map" },
+      { href: "/patrol", icon: Shield, label: "Patrol" },
+      { href: "/community", icon: Users, label: "Communities" },
+      { href: "/communication", icon: MessageCircle, label: "Communication" },
+      { href: "/voice", icon: Radio, label: "Voice" },
+      { href: "/settings", icon: Settings, label: "Settings" },
+    ];
+
+    // Check for super_admin role and add the admin dashboard link
+    if (user?.role === 'super_admin') {
+      console.log("SidebarNavigation - Adding admin dashboard link for super_admin");
+      return [
+        ...baseItems,
+        { href: "/super-admin", icon: Database, label: "Admin Dashboard" }
+      ];
     }
-  }
+    
+    return baseItems;
+  }, [user?.role]);
   
   return (
     <SidebarContent>

@@ -3,7 +3,7 @@ import React from "react";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserWithRole } from "@/contexts/AuthContext";
+import { UserWithRole } from "@/contexts/auth";
 
 interface MobileNavProfileProps {
   user: UserWithRole | null;

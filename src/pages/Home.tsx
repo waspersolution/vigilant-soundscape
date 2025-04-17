@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { useAlert } from "@/contexts/AlertContext";
 import { useLocation } from "@/contexts/LocationContext";
 import { Button } from "@/components/ui/button";
@@ -41,7 +40,6 @@ export default function Home() {
   const { currentLocation, isTracking, startTracking } = useLocation();
   const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>(defaultConfig);
   
-  // Load dashboard configuration from localStorage
   useEffect(() => {
     try {
       const savedConfig = localStorage.getItem('dashboardConfig');
@@ -53,14 +51,12 @@ export default function Home() {
     }
   }, []);
   
-  // Start location tracking if not already tracking
   if (!isTracking && user) {
     startTracking();
   }
 
   return (
     <div className="space-y-6 pb-8">
-      {/* Welcome Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Welcome, {user?.fullName || 'User'}</h1>
         <p className="text-muted-foreground">
@@ -68,7 +64,6 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Top Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className={cn(
           "border-l-4",
@@ -129,18 +124,14 @@ export default function Home() {
         </Card>
       </div>
 
-      {/* Main Content Grid */}
       <div className={`grid grid-cols-1 ${dashboardConfig.layout === 'expanded' ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-6`}>
-        {/* Left Column - Member Status */}
         {dashboardConfig.showMemberStatus && (
           <div className="lg:col-span-1">
             <MemberStatusList />
           </div>
         )}
 
-        {/* Right Column - Alerts and Activities */}
         <div className={`${dashboardConfig.layout === 'expanded' || !dashboardConfig.showMemberStatus ? 'lg:col-span-3' : 'lg:col-span-2'}`}>
-          {/* Active Patrols */}
           {dashboardConfig.showPatrols && (
             <Card className="mb-6">
               <CardHeader className="pb-3">
@@ -153,7 +144,6 @@ export default function Home() {
             </Card>
           )}
 
-          {/* Recent Alerts */}
           {dashboardConfig.showAlerts && (
             <Tabs defaultValue="alerts">
               <TabsList>
@@ -190,7 +180,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Emergency Button */}
       <EmergencyButton />
     </div>
   );

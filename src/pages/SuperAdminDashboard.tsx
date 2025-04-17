@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,20 +28,42 @@ import BillingManagement from "@/components/super-admin/BillingManagement";
 import AuditLogs from "@/components/super-admin/AuditLogs";
 
 export default function SuperAdminDashboard() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const navigate = useNavigate();
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   // Redirect if not a super admin
   useEffect(() => {
-    console.log("SuperAdminDashboard - Current user:", user);
-    if (user && user.role !== "super_admin") {
-      console.log("User is not a super admin, redirecting to home");
-      navigate("/");
+    console.log("SuperAdminDashboard - Auth check starting");
+    console.log("SuperAdminDashboard - User:", user);
+    console.log("SuperAdminDashboard - isLoading:", isLoading);
+    
+    if (!isLoading) {
+      if (user && user.role === "super_admin") {
+        console.log("SuperAdminDashboard - User is a super admin");
+        setIsSuperAdmin(true);
+      } else {
+        console.log("SuperAdminDashboard - User is NOT a super admin, redirecting to home");
+        if (user) {
+          console.log("SuperAdminDashboard - User role:", user.role);
+        }
+        navigate("/");
+      }
     }
-  }, [user, navigate]);
+  }, [user, isLoading, navigate]);
 
-  if (!user || user.role !== "super_admin") {
-    return null; // Will redirect via the useEffect
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // If not a super admin, this will render before redirecting
+  if (!isSuperAdmin) {
+    return null;
   }
 
   return (
