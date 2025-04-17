@@ -19,13 +19,25 @@ export function useUserDeletion(onSuccess: () => void) {
     
     setIsDeleting(true);
     try {
-      const { error } = await supabase
+      // Check if user is logged in
+      const currentSession = await supabase.auth.getSession();
+      if (!currentSession.data.session) {
+        throw new Error("You must be logged in to perform this action");
+      }
+      
+      console.log("Deleting user:", userToDelete.id);
+      const { data, error } = await supabase
         .from('profiles')
         .delete()
-        .eq('id', userToDelete.id);
+        .eq('id', userToDelete.id)
+        .select();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting user:", error);
+        throw error;
+      }
       
+      console.log("User deleted successfully:", data);
       toast.success('User deleted successfully');
       setDeleteDialogOpen(false);
       onSuccess();

@@ -22,17 +22,24 @@ export function useUserDialog(onSuccess: () => void) {
   const submitUserForm = async (data: UserFormValues) => {
     setIsSubmitting(true);
     try {
+      // Check if user is logged in
       const currentSession = await supabase.auth.getSession();
       if (!currentSession.data.session) {
         throw new Error("You must be logged in to perform this action");
       }
 
+      console.log("Submitting user form with data:", data);
+      
+      // Process community ID based on role selection
       const isAdminUser = data.role === 'admin' || data.role === 'super_admin';
       const communityId = isAdminUser ? null : 
                          (data.communityId === 'none' ? null : data.communityId || null);
+      
+      console.log("Processed communityId:", communityId);
 
       if (editingUser) {
-        const { error } = await supabase
+        console.log("Updating existing user:", editingUser.id);
+        const { data: userData, error } = await supabase
           .from('profiles')
           .update({
             full_name: data.fullName,
@@ -40,14 +47,22 @@ export function useUserDialog(onSuccess: () => void) {
             role: data.role,
             community_id: communityId,
           })
-          .eq('id', editingUser.id);
+          .eq('id', editingUser.id)
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error updating user:", error);
+          throw error;
+        }
+        
+        console.log("User updated successfully:", userData);
         toast.success('User updated successfully');
       } else {
+        console.log("Creating new user");
         const uniqueId = crypto.randomUUID();
         
-        const { error } = await supabase
+        // Check if a current session exists to bypass RLS
+        const { data: userData, error } = await supabase
           .from('profiles')
           .insert({
             id: uniqueId,
@@ -55,9 +70,15 @@ export function useUserDialog(onSuccess: () => void) {
             email: data.email,
             role: data.role,
             community_id: communityId,
-          });
+          })
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error creating user:", error);
+          throw error;
+        }
+        
+        console.log("User created successfully:", userData);
         toast.success('User profile created successfully');
       }
       
