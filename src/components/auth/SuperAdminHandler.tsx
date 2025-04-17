@@ -40,7 +40,6 @@ class SuperAdminHandler {
             // Continue anyway as we at least authenticated successfully
           } else {
             console.log("User metadata updated successfully with role: super_admin");
-            toast.success("Super admin login successful");
             
             // Refresh the session with updated metadata
             const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
@@ -58,6 +57,9 @@ class SuperAdminHandler {
         if (onSuperAdminSignup) {
           onSuperAdminSignup();
         }
+        
+        // Force redirect to super admin dashboard to ensure proper loading
+        window.location.href = "/super-admin";
         return;
       }
       
@@ -113,6 +115,9 @@ class SuperAdminHandler {
           if (onSuperAdminSignup) {
             onSuperAdminSignup();
           }
+          
+          // Force redirect to admin dashboard
+          window.location.href = "/super-admin";
         } else {
           throw new Error("User creation successful but user data is missing");
         }

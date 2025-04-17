@@ -56,7 +56,9 @@ export default function SuperAdminDashboard() {
             const { data } = await supabase.auth.refreshSession();
             if (data.session) {
               console.log("Session refreshed with updated role");
-              window.location.reload(); // Force full page reload to get updated role
+              
+              // Force page reload to ensure all components have the latest user data
+              window.location.reload(); 
             }
           }
         } catch (err) {
@@ -65,7 +67,8 @@ export default function SuperAdminDashboard() {
       }
     };
     
-    if (!isLoading && user && user.email === "wasperstore@gmail.com" && user.role !== "super_admin") {
+    if (!isLoading && user?.email === "wasperstore@gmail.com" && user.role !== "super_admin") {
+      console.log("SuperAdminDashboard - User email matched but role is not super_admin, enforcing...");
       forceUpdateSuperAdminRole();
     }
   }, [isLoading, user]);
@@ -80,10 +83,17 @@ export default function SuperAdminDashboard() {
     
     // Only run access check once authentication has loaded
     if (!isLoading) {
-      if (user?.role === "super_admin" || user?.email === "wasperstore@gmail.com") {
-        console.log("SuperAdminDashboard - User is confirmed super admin or has super admin email, allowing access");
+      // Special case for wasperstore@gmail.com - always allow access
+      if (user?.email === "wasperstore@gmail.com") {
+        console.log("SuperAdminDashboard - Special super admin email detected, allowing access");
         setAccessChecked(true);
-      } else {
+      }
+      // Check role-based access
+      else if (user?.role === "super_admin") {
+        console.log("SuperAdminDashboard - User has super_admin role, allowing access");
+        setAccessChecked(true);
+      } 
+      else {
         console.log("SuperAdminDashboard - User is NOT a super admin, redirecting to home");
         console.log("SuperAdminDashboard - User email:", user?.email);
         console.log("SuperAdminDashboard - User role:", user?.role);
@@ -98,6 +108,7 @@ export default function SuperAdminDashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="ml-4">Verifying super admin access...</div>
       </div>
     );
   }

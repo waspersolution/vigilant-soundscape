@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
 import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
@@ -43,11 +44,17 @@ export default function Auth() {
     if (!isLoading && isAuthenticated) {
       console.log("User is authenticated in Auth page");
       
-      // Special handling for super admin
-      if (user?.role === "super_admin" || user?.email === "wasperstore@gmail.com") {
-        console.log("Super admin detected, redirecting to super admin dashboard");
+      // Special handling for super admin - always redirect them to super admin dashboard
+      if (user?.email === "wasperstore@gmail.com") {
+        console.log("Super admin email detected, redirecting to super admin dashboard");
         navigate("/super-admin", { replace: true });
-      } else {
+      }
+      // Check for super_admin role
+      else if (user?.role === "super_admin") {
+        console.log("Super admin role detected, redirecting to super admin dashboard");
+        navigate("/super-admin", { replace: true });
+      } 
+      else {
         console.log("Regular user, redirecting to home");
         navigate("/home", { replace: true });
       }

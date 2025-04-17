@@ -10,6 +10,51 @@ export function useAuthProvider() {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Force update super admin role
+  const enforceSuperAdminRole = async (currentUser: UserWithRole) => {
+    if (currentUser.email === "wasperstore@gmail.com") {
+      console.log("ENFORCING super_admin role for:", currentUser.email);
+      
+      try {
+        const { error } = await supabase.auth.updateUser({
+          data: { 
+            role: 'super_admin',
+            full_name: 'Azeez Wosilat'
+          }
+        });
+        
+        if (error) {
+          console.error("Super admin role enforcement error:", error);
+          return false;
+        }
+        
+        console.log("Super admin role enforced successfully");
+        
+        // Immediately refresh session to get updated metadata
+        const { data: refreshData } = await supabase.auth.refreshSession();
+        
+        if (refreshData.session) {
+          console.log("Session refreshed with updated role metadata:", refreshData.user?.user_metadata);
+          
+          // Create updated user object with enforced role
+          const updatedUser: UserWithRole = {
+            ...refreshData.user!,
+            role: 'super_admin',
+            fullName: 'Azeez Wosilat'
+          };
+          
+          console.log("Setting user with enforced super_admin role");
+          setUser(updatedUser);
+          setSession(refreshData.session);
+          return true;
+        }
+      } catch (err) {
+        console.error("Super admin enforcement error:", err);
+      }
+    }
+    return false;
+  };
+
   // Setup auth state listener and check initial session
   useEffect(() => {
     console.log("AuthProvider initializing");
@@ -18,11 +63,12 @@ export function useAuthProvider() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log("Auth state changed:", event, !!currentSession);
-        console.log("Session user metadata:", currentSession?.user?.user_metadata);
         
         setSession(currentSession);
         
         if (currentSession) {
+          console.log("Session user metadata:", currentSession.user.user_metadata);
+          
           // Extract role from user metadata
           const metadataRole = currentSession.user.user_metadata?.role;
           const fullName = currentSession.user.user_metadata?.full_name || 'User';
@@ -37,7 +83,14 @@ export function useAuthProvider() {
           };
           
           console.log("Setting user with role:", userWithRole.role);
-          setUser(userWithRole);
+          
+          if (userWithRole.email === "wasperstore@gmail.com" && 
+             (userWithRole.role !== 'super_admin' || event === 'SIGNED_IN')) {
+            console.log("Super admin email detected, enforcing role");
+            await enforceSuperAdminRole(userWithRole);
+          } else {
+            setUser(userWithRole);
+          }
         } else {
           setUser(null);
           console.log("No session in auth change, setting user to null");
@@ -76,8 +129,15 @@ export function useAuthProvider() {
             fullName: fullName
           };
           
-          console.log("User with role set:", userWithRole.role);
-          setUser(userWithRole);
+          console.log("Initial user with role:", userWithRole.role);
+          
+          // Force super_admin role for wasperstore@gmail.com
+          if (userWithRole.email === "wasperstore@gmail.com" && userWithRole.role !== 'super_admin') {
+            console.log("Super admin email detected at initialization, enforcing role");
+            await enforceSuperAdminRole(userWithRole);
+          } else {
+            setUser(userWithRole);
+          }
         } else {
           // No active session
           console.log("No active session found");
@@ -114,58 +174,22 @@ export function useAuthProvider() {
       console.log("Login successful");
       toast.success("Login successful");
       
-      // Force update user role from metadata
-      if (data.user) {
-        const metadataRole = data.user.user_metadata?.role;
-        const fullName = data.user.user_metadata?.full_name || 'User';
+      // Special handling for super_admin login
+      if (email === "wasperstore@gmail.com") {
+        console.log("Super admin login detected, forcing role update");
         
-        console.log("Login - User metadata role:", metadataRole);
-        
-        // Create user object with metadata
+        // Create user object with super_admin role
         const userWithRole: UserWithRole = {
-          ...data.user,
-          role: metadataRole || 'member',
-          fullName: fullName
+          ...data.user!,
+          role: 'super_admin',
+          fullName: 'Azeez Wosilat'
         };
         
-        console.log("Updated user with role after login:", userWithRole.role);
-        setUser(userWithRole);
+        // Force update metadata for super admin
+        await enforceSuperAdminRole(userWithRole);
         
-        // Special handling for super_admin login
-        if (email === "wasperstore@gmail.com" && password === "Azeezwosilat1986") {
-          console.log("Super admin detected, making sure role is set correctly");
-          
-          // Force update metadata for super admin
-          const { error: updateError } = await supabase.auth.updateUser({
-            data: { 
-              role: 'super_admin',
-              full_name: 'Azeez Wosilat'
-            }
-          });
-          
-          if (updateError) {
-            console.error("Super admin metadata update error:", updateError);
-          } else {
-            console.log("Super admin metadata successfully updated");
-          }
-          
-          // Immediately refresh the session to get updated metadata
-          const { data: refreshData } = await supabase.auth.refreshSession();
-          if (refreshData.session) {
-            console.log("Session refreshed with updated metadata:", refreshData.user?.user_metadata);
-            
-            // Update the user state with correct role
-            const updatedUserWithRole: UserWithRole = {
-              ...refreshData.user!,
-              role: 'super_admin',
-              fullName: 'Azeez Wosilat'
-            };
-            
-            console.log("Setting super admin user with forced role:", updatedUserWithRole.role);
-            setUser(updatedUserWithRole);
-            setSession(refreshData.session);
-          }
-        }
+        // Force reload the page to ensure all components get the latest role
+        window.location.href = "/super-admin";
       }
     } catch (error: any) {
       console.error("Login error:", error);
@@ -213,10 +237,14 @@ export function useAuthProvider() {
       if (error) {
         throw error;
       }
+      
       setUser(null);
       setSession(null);
       console.log("Logout successful");
       toast.success("Logged out successfully");
+      
+      // Redirect to auth page after logout
+      window.location.href = "/auth";
     } catch (error: any) {
       console.error("Logout error:", error);
       toast.error(error.message || "Failed to logout");

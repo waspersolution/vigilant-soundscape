@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Check, Save, User, LogOut } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +30,41 @@ export default function ProfileSettings() {
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   console.log("Current user in ProfileSettings:", user);
+
+  // Check if this is the super admin account and needs a role update
+  useEffect(() => {
+    const updateSuperAdminRoleIfNeeded = async () => {
+      if (user?.email === "wasperstore@gmail.com" && user.role !== "super_admin") {
+        console.log("ProfileSettings - Super admin email detected but role isn't correct, updating...");
+        try {
+          const { error } = await supabase.auth.updateUser({
+            data: { 
+              role: 'super_admin',
+              full_name: 'Azeez Wosilat'
+            }
+          });
+          
+          if (error) {
+            console.error("Failed to update super admin role:", error);
+          } else {
+            console.log("Super admin role enforced from ProfileSettings");
+            
+            // Refresh session to get updated metadata
+            await supabase.auth.refreshSession();
+            
+            // Force window reload to ensure all components have latest role
+            window.location.reload();
+          }
+        } catch (err) {
+          console.error("Error enforcing super admin role:", err);
+        }
+      }
+    };
+    
+    if (user) {
+      updateSuperAdminRoleIfNeeded();
+    }
+  }, [user]);
 
   // Update form when user data changes
   useEffect(() => {
@@ -121,14 +155,25 @@ export default function ProfileSettings() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate("/auth");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      navigate("/auth");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast.error("Failed to logout");
+    }
   };
 
   // Function to format role display
   const formatRole = (role: string | undefined) => {
-    if (!role) return 'member';
+    if (!role) return 'Member';
+    
+    // Special handling for wasperstore@gmail.com
+    if (user?.email === "wasperstore@gmail.com") {
+      return "Super Admin";
+    }
     
     // Convert role to title case (e.g., 'super_admin' to 'Super Admin')
     return role
@@ -181,12 +226,17 @@ export default function ProfileSettings() {
               value={formatRole(user?.role)}
               disabled
             />
-            {user?.role === 'super_admin' && (
+            {user?.email === "wasperstore@gmail.com" && (
               <p className="text-xs text-green-600 dark:text-green-400">
                 You have super admin privileges
               </p>
             )}
-            {user?.role !== 'super_admin' && (
+            {user?.role === 'super_admin' && user?.email !== "wasperstore@gmail.com" && (
+              <p className="text-xs text-green-600 dark:text-green-400">
+                You have super admin privileges
+              </p>
+            )}
+            {user?.role !== 'super_admin' && user?.email !== "wasperstore@gmail.com" && (
               <p className="text-xs text-muted-foreground">
                 Roles are assigned by community administrators
               </p>

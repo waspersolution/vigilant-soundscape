@@ -29,6 +29,9 @@ export default function Index() {
             
             // Refresh session to get updated metadata
             await supabase.auth.refreshSession();
+            
+            // Force page reload to ensure new role is applied everywhere
+            window.location.reload();
           }
         } catch (err) {
           console.error("Error enforcing super admin role:", err);
@@ -51,12 +54,16 @@ export default function Index() {
     
     if (!isLoading) {
       if (isAuthenticated) {
-        // Special handling for super admin
-        if (user?.role === "super_admin" || user?.email === "wasperstore@gmail.com") {
-          console.log("User is super admin, giving option to navigate to super admin dashboard");
+        // Special handling for super admin email - always go to super admin regardless of role
+        if (user?.email === "wasperstore@gmail.com") {
+          console.log("User has super admin email, redirecting to super admin dashboard");
           toast.success("Logged in as Super Admin");
-          
-          // Ask if they want to go to super admin dashboard or home
+          navigate("/super-admin", { replace: true });
+        }
+        // Role-based handling
+        else if (user?.role === "super_admin") {
+          console.log("User has super_admin role, redirecting to super admin dashboard");
+          toast.success("Logged in as Super Admin");
           navigate("/super-admin", { replace: true });
         } else {
           console.log("User is authenticated but not super admin, navigating to home page");
