@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +7,7 @@ import { Database } from "@/integrations/supabase/types";
 type ProfileType = Database["public"]["Tables"]["profiles"]["Row"];
 type UserRole = Database["public"]["Enums"]["user_role"];
 
-interface UserWithRole extends User {
+export interface UserWithRole extends User {
   role?: UserRole;
   fullName?: string;
   communityId?: string | null;

@@ -1,11 +1,13 @@
+
 import React, { ReactNode, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileNav from "./MobileNav";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
+import { Sidebar, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Bell, Home, Map, Shield, Settings, Users, Radio, MessageCircle, Database } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import SidebarNavigation from "./SidebarNavigation";
+import AppFooter from "./AppFooter";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -13,10 +15,7 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const { isAuthenticated, user } = useAuth();
-  const location = useLocation();
   const isMobile = useIsMobile();
-
-  console.log("Current user in AppLayout:", user);
 
   useEffect(() => {
     try {
@@ -37,32 +36,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
     return <main className="min-h-screen">{children}</main>;
   }
 
-  // Basic navigation items for all users
-  const navItems = [
-    { href: "/", icon: Home, label: "Home" },
-    { href: "/alerts", icon: Bell, label: "Alerts" },
-    { href: "/map", icon: Map, label: "Map" },
-    { href: "/patrol", icon: Shield, label: "Patrol" },
-    { href: "/community", icon: Users, label: "Communities" },
-    { href: "/communication", icon: MessageCircle, label: "Communication" },
-    { href: "/voice", icon: Radio, label: "Voice" },
-    { href: "/settings", icon: Settings, label: "Settings" },
-  ];
-
-  // Check for super_admin role and add the admin dashboard link
-  console.log("Current user role:", user?.role);
-  if (user?.role === 'super_admin') {
-    console.log("Adding super admin link to navigation");
-    // Create a new array instead of modifying the existing one
-    const adminItem = { href: "/super-admin", icon: Database, label: "Admin Dashboard" };
-    
-    // Check if the admin item is already in the array to avoid duplicates
-    const adminExists = navItems.some(item => item.href === "/super-admin");
-    if (!adminExists) {
-      navItems.push(adminItem);
-    }
-  }
-
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-secondary/5">
@@ -73,42 +46,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 VigilPro
               </Link>
             </SidebarHeader>
-            <SidebarContent>
-              <SidebarGroup>
-                <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {navItems.map((item) => (
-                      <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton asChild active={location.pathname === item.href}>
-                          <Link to={item.href} className="flex items-center gap-2">
-                            <item.icon className="h-5 w-5" />
-                            <span>{item.label}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            </SidebarContent>
+            
+            <SidebarNavigation user={user} />
+            
             <SidebarFooter>
-              <div className="text-center p-2 text-xs text-muted-foreground">
-                <Link 
-                  to="https://waspersolution.com/community" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="hover:text-primary transition-colors"
-                >
-                  Developed by Wasper Solutions
-                </Link>
-                {user && (
-                  <p className="mt-1">
-                    Logged in as {user.fullName}
-                    {user.role === 'super_admin' && ' (Admin)'}
-                  </p>
-                )}
-              </div>
+              <AppFooter user={user} />
             </SidebarFooter>
           </Sidebar>
         </div>
@@ -122,15 +64,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </div>
           </main>
           
-          <footer className="absolute bottom-0 w-full text-center p-2 text-xs text-muted-foreground bg-background/50 backdrop-blur-sm md:hidden">
-            <Link 
-              to="https://waspersolution.com/community" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="hover:text-primary transition-colors"
-            >
-              Developed by Wasper Solutions
-            </Link>
+          <footer className="absolute bottom-0 w-full md:hidden">
+            <AppFooter user={user} isMobile={true} />
           </footer>
         </div>
       </div>
