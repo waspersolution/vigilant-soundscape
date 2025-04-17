@@ -1,16 +1,7 @@
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
-} from "@/components/ui/dialog";
 import { UserPlus } from "lucide-react";
+import DynamicDialog from "@/components/ui/dynamic-dialog";
 
 interface InviteMemberDialogProps {
   open: boolean;
@@ -30,41 +21,28 @@ export default function InviteMemberDialog({
   loading
 }: InviteMemberDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
+    <DynamicDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Invite New Member"
+      description="Send an invitation to join your community"
+      trigger={
         <Button size="sm" variant="outline">
           <UserPlus className="mr-2 h-4 w-4" />
           Invite
         </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Invite New Member</DialogTitle>
-          <DialogDescription>
-            Send an invitation to join your community
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <label htmlFor="email">Email Address</label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => onEmailChange(e.target.value)}
-              placeholder="Enter email address..."
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button 
-            onClick={onInvite} 
-            disabled={loading || !email.trim()}
-          >
-            {loading ? "Sending..." : "Send Invitation"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      }
+      inputLabel="Email Address"
+      inputValue={email}
+      inputId="email"
+      inputType="email"
+      inputPlaceholder="Enter email address..."
+      onInputChange={onEmailChange}
+      onSubmit={onInvite}
+      submitButtonText="Send Invitation"
+      loadingText="Sending..."
+      loading={loading}
+      disabled={!email.trim()}
+    />
   );
 }

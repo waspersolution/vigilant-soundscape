@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Community } from "@/types";
 import { 
   Card, 
@@ -10,16 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Users, Shield } from "lucide-react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import DynamicDialog from "@/components/ui/dynamic-dialog";
 
 interface CommunityListProps {
   communities: Community[];
@@ -53,41 +43,28 @@ export default function CommunityList({
           <CardTitle>Your Communities</CardTitle>
           <CardDescription>Communities you are a part of</CardDescription>
         </div>
-        <Dialog open={createDialogOpen} onOpenChange={onCreateDialogOpenChange}>
-          <DialogTrigger asChild>
+        <DynamicDialog
+          open={createDialogOpen}
+          onOpenChange={onCreateDialogOpenChange}
+          title="Create New Community"
+          description="Create a new community that you'll manage. You'll be assigned as the leader."
+          trigger={
             <Button size="sm">
               <Plus className="mr-2 h-4 w-4" />
               New Community
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Community</DialogTitle>
-              <DialogDescription>
-                Create a new community that you'll manage. You'll be assigned as the leader.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <label htmlFor="name">Community Name</label>
-                <Input
-                  id="name"
-                  value={newCommunityName}
-                  onChange={(e) => onNewCommunityNameChange(e.target.value)}
-                  placeholder="Enter community name..."
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button 
-                onClick={onCreateCommunity} 
-                disabled={loading || !newCommunityName.trim()}
-              >
-                {loading ? "Creating..." : "Create Community"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          }
+          inputLabel="Community Name"
+          inputValue={newCommunityName}
+          inputId="name"
+          inputPlaceholder="Enter community name..."
+          onInputChange={onNewCommunityNameChange}
+          onSubmit={onCreateCommunity}
+          submitButtonText="Create Community"
+          loadingText="Creating..."
+          loading={loading}
+          disabled={!newCommunityName.trim()}
+        />
       </CardHeader>
       <CardContent>
         {loading && communities.length === 0 ? (
