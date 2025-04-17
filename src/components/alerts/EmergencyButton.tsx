@@ -12,12 +12,16 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useAlert } from "@/contexts/AlertContext";
-import { AlertTriangle, Siren, ShieldAlert, Radio } from "lucide-react";
+import { AlertTriangle, Siren, ShieldAlert, Radio, Mic, MicOff } from "lucide-react";
+import EmergencyAlertUsage from "./EmergencyAlertUsage";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function EmergencyButton() {
   const [open, setOpen] = useState(false);
   const [alertType, setAlertType] = useState<"panic" | "emergency" | "patrol_stop">("emergency");
   const [message, setMessage] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
   const { createAlert, isLoading } = useAlert();
 
   const handleSendAlert = async () => {
@@ -32,9 +36,48 @@ export default function EmergencyButton() {
       await createAlert(alertType, message, priorityMap[alertType] as 1 | 2 | 4);
       setOpen(false);
       setMessage("");
+      setIsRecording(false);
+      setRecordingTime(0);
     } catch (error) {
       console.error("Failed to send alert:", error);
     }
+  };
+
+  // Mock voice recording functionality
+  const toggleRecording = () => {
+    if (isRecording) {
+      setIsRecording(false);
+      // In a real implementation, we would stop recording and process the audio
+      console.log("Voice recording stopped after", recordingTime, "seconds");
+    } else {
+      setIsRecording(true);
+      setRecordingTime(0);
+      
+      // Start a timer to track recording duration
+      const interval = setInterval(() => {
+        setRecordingTime(prev => {
+          if (prev >= 60) { // Max 60 seconds
+            clearInterval(interval);
+            setIsRecording(false);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+      
+      // Store the interval ID to clear it later
+      (window as any).recordingInterval = interval;
+    }
+  };
+
+  // Cleanup recording timer if dialog is closed
+  const handleCloseDialog = () => {
+    if (isRecording) {
+      clearInterval((window as any).recordingInterval);
+      setIsRecording(false);
+      setRecordingTime(0);
+    }
+    setOpen(false);
   };
 
   return (
@@ -48,7 +91,7 @@ export default function EmergencyButton() {
         <Siren className="h-8 w-8" />
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleCloseDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Emergency Alert</DialogTitle>
@@ -82,8 +125,8 @@ export default function EmergencyButton() {
                   </div>
                   <p className="text-sm mt-1">
                     Use for immediate danger requiring urgent response. This will send a
-                    high-priority alert with sounds to all security personnel and community
-                    leaders. Use only in genuine emergencies.
+                    high-priority alert with sounds to all security personnel, community
+                    leaders, and your emergency contacts.
                   </p>
                 </div>
 
@@ -93,6 +136,37 @@ export default function EmergencyButton() {
                   onChange={(e) => setMessage(e.target.value)}
                   className="min-h-24"
                 />
+                
+                <div className="mt-4">
+                  <Button 
+                    type="button" 
+                    variant={isRecording ? "destructive" : "outline"}
+                    className="w-full flex items-center justify-center gap-2"
+                    onClick={toggleRecording}
+                  >
+                    {isRecording ? (
+                      <>
+                        <MicOff size={16} /> Stop Recording ({recordingTime}s)
+                      </>
+                    ) : (
+                      <>
+                        <Mic size={16} /> Record Voice Message
+                      </>
+                    )}
+                  </Button>
+                </div>
+                
+                {alertType === "panic" && (
+                  <Alert variant="warning" className="mt-4">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Important</AlertTitle>
+                    <AlertDescription>
+                      Sending a panic alert will notify your emergency contacts via SMS with your location.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                <EmergencyAlertUsage />
               </div>
             </TabsContent>
 
@@ -115,6 +189,8 @@ export default function EmergencyButton() {
                   onChange={(e) => setMessage(e.target.value)}
                   className="min-h-24"
                 />
+                
+                <EmergencyAlertUsage />
               </div>
             </TabsContent>
 
@@ -142,7 +218,7 @@ export default function EmergencyButton() {
           </Tabs>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button variant="outline" onClick={handleCloseDialog}>
               Cancel
             </Button>
             <Button
