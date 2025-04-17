@@ -76,6 +76,11 @@
   }
 }
 
+/* Text utilities */
+.text-gradient {
+  @apply bg-gradient-to-br from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent;
+}
+
 /* Map animation styles */
 @keyframes ping-location {
   75%, 100% {

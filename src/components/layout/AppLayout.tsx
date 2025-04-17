@@ -1,5 +1,5 @@
 
-import React, { ReactNode, useEffect } from "react";
+import React, { ReactNode } from "react";
 import { useAuth } from "@/contexts/auth";
 import MobileNav from "./MobileNav";
 import { Sidebar, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
@@ -17,21 +17,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const { isAuthenticated, user } = useAuth();
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    try {
-      const savedConfig = localStorage.getItem('dashboardConfig');
-      if (savedConfig) {
-        const config = JSON.parse(savedConfig);
-        
-        if (config.theme && config.theme !== 'system') {
-          document.documentElement.classList.toggle('dark', config.theme === 'dark');
-        }
-      }
-    } catch (error) {
-      console.error("Error loading dashboard configuration:", error);
-    }
-  }, []);
-
+  // If not authenticated, just return the children
   if (!isAuthenticated) {
     return <main className="min-h-screen">{children}</main>;
   }
@@ -39,6 +25,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-secondary/5">
+        {/* Desktop Sidebar */}
         <div className="hidden md:block">
           <Sidebar>
             <SidebarHeader>
@@ -56,6 +43,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </div>
 
         <div className="flex-1 relative">
+          {/* Mobile Navigation */}
           <MobileNav />
           
           <main className="pb-16 md:pb-0 min-h-screen">
@@ -64,6 +52,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </div>
           </main>
           
+          {/* Mobile Footer */}
           <footer className="absolute bottom-0 w-full md:hidden">
             <AppFooter user={user} isMobile={true} />
           </footer>
