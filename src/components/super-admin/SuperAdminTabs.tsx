@@ -14,7 +14,7 @@ import {
 
 // Super Admin dashboard tabs
 import SuperAdminOverview from "@/components/super-admin/SuperAdminOverview";
-import { UsersManagement } from "@/components/super-admin/users/UsersManagement";
+import { UsersManagement } from "@/components/super-admin"; // Fixed import
 import CommunitiesManagement from "@/components/super-admin/CommunitiesManagement";
 import AlertsMonitoring from "@/components/super-admin/AlertsMonitoring";
 import CommunicationMonitoring from "@/components/super-admin/CommunicationMonitoring";
