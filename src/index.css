@@ -2,153 +2,161 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+ 
 @layer base {
   :root {
-    /* Midnight Shield Theme (Dark Mode Security) */
-    --background: 217 24% 17%; /* #1E293B (Charcoal Slate) */
-    --foreground: 210 40% 98%; /* #F8FAFC (Very Light Grey) */
-
-    --card: 217 33% 17%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 217 33% 17%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 222 84% 53%; /* #2563EB (Bright Royal Blue) */
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 217 33% 22%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217 33% 22%;
-    --muted-foreground: 215 20% 75%;
-
-    --accent: 222 84% 53%; /* #2563EB (Bright Royal Blue) */
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 84% 60%; /* #EF4444 (Alert Red) */
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217 33% 25%;
-    --input: 217 33% 25%;
-    --ring: 222 84% 53%;
-
-    --radius: 0.75rem;
-
-    --success: 159 84% 39%; /* #10B981 (Green) */
-    --success-foreground: 210 40% 98%;
-
-    --sidebar-background: 222 47% 11%; /* #0F172A (Dark Blue Slate) */
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 222 84% 53%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 217 33% 22%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 25%;
-    --sidebar-ring: 222 84% 53%;
-  }
-
-  .light {
-    /* Ivory Guard Theme (Light Mode with Calm Neutrals) */
-    --background: 210 20% 98%;  /* #F3F4F6 (Cloud White) */
-    --foreground: 222 47% 11%; /* #111827 (Charcoal Black) */
-
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+ 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-
+    --card-foreground: 222.2 84% 4.9%;
+ 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    --primary: 221 83% 53%; /* #1E40AF (Bold Blue) */
+    --popover-foreground: 222.2 84% 4.9%;
+ 
+    --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
-
-    --secondary: 220 14% 96%; /* #F3F4F6 (Cloud White) */
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 8% 46%;
-
-    --accent: 45 93% 47%; /* #EAB308 (Soft Yellow Gold) */
-    --accent-foreground: 222 47% 11%;
-
-    --destructive: 0 72% 51%; /* #DC2626 (Strong Red) */
+ 
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+ 
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+ 
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+ 
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 221 83% 53%;
-
-    --success: 142 71% 36%; /* #16A34A (Safe Green) */
-    --success-foreground: 210 40% 98%;
-
-    --sidebar-background: 221 83% 53%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 210 40% 98%;
-    --sidebar-primary-foreground: 221 83% 53%;
-    --sidebar-accent: 210 40% 90%;
-    --sidebar-accent-foreground: 221 83% 53%;
-    --sidebar-border: 210 40% 90%;
-    --sidebar-ring: 45 93% 47%;
+ 
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+ 
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+ 
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+ 
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+ 
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+ 
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+ 
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+ 
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+ 
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
   }
 }
-
+ 
 @layer base {
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
   }
-  
-  /* Modern styles */
-  .glass-card {
-    @apply bg-background/80 backdrop-blur-md border border-primary/20 shadow-lg;
-  }
-  
-  .gradient-border {
-    @apply relative before:absolute before:inset-0 before:p-[1px] before:rounded-[inherit] before:bg-gradient-to-r before:from-primary before:to-accent before:-z-10;
-  }
-  
-  .hover-scale {
-    @apply transition-transform duration-200 hover:scale-[1.02];
-  }
+}
 
-  .security-card {
-    @apply bg-card/90 border border-border/50 shadow-lg relative overflow-hidden;
-  }
-  
-  .security-card::before {
-    content: '';
-    @apply absolute top-0 left-0 w-full h-1 bg-primary;
-  }
-  
-  .pulsing-dot {
-    @apply relative inline-flex h-2.5 w-2.5 rounded-full bg-success mr-2;
-  }
-  
-  .pulsing-dot::before {
-    content: '';
-    @apply absolute inline-flex h-full w-full rounded-full bg-success animate-ping opacity-75;
+/* Map animation styles */
+@keyframes ping-location {
+  75%, 100% {
+    transform: scale(1.5);
+    opacity: 0;
   }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+.animate-ping-location {
+  animation: ping-location 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes flash-alert {
+  0%, 50%, 100% {
+    opacity: 1;
   }
-  
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  25%, 75% {
+    opacity: 0.5;
   }
-  
-  .security-shadow {
-    @apply shadow-[0_4px_12px_rgba(37,99,235,0.2)];
+}
+
+.animate-flash-alert {
+  animation: flash-alert 2s ease-in-out infinite;
+}
+
+@keyframes pulse-alert {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
   }
-  
-  .shield-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L50 20 L40 55 L30 45 L20 55 L10 20 L30 5' stroke-width='1' stroke='rgba(37,99,235,0.05)' fill='none'/%3E%3C/svg%3E");
-    background-size: 60px 60px;
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
   }
+}
+
+.animate-pulse-alert {
+  animation: pulse-alert 2s ease-in-out infinite;
+}
+
+@keyframes slide-in-bottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-bottom {
+  animation: slide-in-bottom 0.3s ease-out forwards;
+}
+
+/* MapboxGL marker customizations */
+.mapboxgl-marker {
+  cursor: pointer;
+}
+
+.mapboxgl-popup-content {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.mapboxgl-popup-close-button {
+  padding: 0.25rem;
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.mapboxgl-ctrl-group {
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  border-radius: 0.5rem !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.mapboxgl-ctrl button {
+  width: 32px !important;
+  height: 32px !important;
 }
