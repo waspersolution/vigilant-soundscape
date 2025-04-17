@@ -35,6 +35,7 @@ export interface Alert {
   message?: string | null;
   location: any;
   senderId: string;
+  senderName?: string;
   communityId: string;
   priority: number;
   createdAt: string;
@@ -48,6 +49,7 @@ export interface Alert {
 export interface PatrolSession {
   id: string;
   guardId: string;
+  guardName?: string;
   communityId: string;
   startTime: string;
   endTime?: string | null;
@@ -71,7 +73,7 @@ export interface Message {
   createdAt: string;
 }
 
-// Export the Channel type (already defined in the previous code)
+// Channel type for communication channels
 export interface Channel {
   id: string;
   communityId: string;
