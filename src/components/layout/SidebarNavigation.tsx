@@ -1,7 +1,18 @@
 
 import React, { useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Home, Bell, Map, Shield, Users, Radio, MessageCircle, Database, Settings } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { 
+  Home, 
+  Bell, 
+  Map, 
+  Shield, 
+  Users, 
+  Radio, 
+  MessageCircle, 
+  Database, 
+  Settings,
+  LogOut  // Add LogOut icon
+} from "lucide-react";
 import { 
   SidebarContent, 
   SidebarGroup, 
@@ -12,6 +23,7 @@ import {
   SidebarMenuButton 
 } from "@/components/ui/sidebar";
 import { UserWithRole } from "@/contexts/auth";
+import { useAuth } from "@/contexts/auth";  // Import useAuth
 
 interface SidebarNavigationProps {
   user: UserWithRole | null;
@@ -19,6 +31,18 @@ interface SidebarNavigationProps {
 
 export default function SidebarNavigation({ user }: SidebarNavigationProps) {
   const location = useLocation();
+  const { logout } = useAuth();  // Get logout function from useAuth
+  const navigate = useNavigate();  // Add useNavigate for programmatic navigation
+
+  // Handle logout functionality
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Logout will automatically redirect to auth page
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
   
   // Use useMemo to prevent unnecessary recalculations
   const navItems = useMemo(() => {
@@ -64,9 +88,21 @@ export default function SidebarNavigation({ user }: SidebarNavigationProps) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
+            
+            {/* Add logout button */}
+            <SidebarMenuItem>
+              <SidebarMenuButton 
+                className="text-destructive hover:bg-destructive/10"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-5 w-5" />
+                <span>Logout</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
     </SidebarContent>
   );
 }
+
