@@ -202,9 +202,10 @@ export async function updateEmergencyContacts(
   contacts: EmergencyContact[]
 ): Promise<boolean> {
   try {
+    // Convert EmergencyContact[] to Json for Supabase
     const { error } = await supabase
       .from("communities")
-      .update({ emergency_contacts: contacts })
+      .update({ emergency_contacts: contacts as unknown as Database["public"]["Tables"]["communities"]["Update"]["emergency_contacts"] })
       .eq("id", communityId);
     
     if (error) throw error;
@@ -228,7 +229,9 @@ export async function fetchEmergencyContacts(communityId: string): Promise<Emerg
     
     if (error) throw error;
     
-    return data.emergency_contacts as EmergencyContact[] || [];
+    // Convert from Json to EmergencyContact[]
+    if (!data.emergency_contacts) return [];
+    return data.emergency_contacts as unknown as EmergencyContact[];
   } catch (error) {
     console.error("Error fetching emergency contacts:", error);
     toast.error("Failed to fetch emergency contacts");
