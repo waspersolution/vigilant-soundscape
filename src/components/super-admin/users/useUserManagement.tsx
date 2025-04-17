@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -111,6 +110,11 @@ export default function useUserManagement() {
   const submitUserForm = async (data: UserFormValues) => {
     setIsSubmitting(true);
     try {
+      const currentSession = await supabase.auth.getSession();
+      if (!currentSession.data.session) {
+        throw new Error("You must be logged in to perform this action");
+      }
+
       if (editingUser) {
         // Update existing user
         const { error } = await supabase
@@ -123,12 +127,19 @@ export default function useUserManagement() {
           })
           .eq('id', editingUser.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update error details:', error);
+          throw error;
+        }
         toast.success('User updated successfully');
       } else {
-        // Create new user - For demo purposes we're creating a profile entry
-        // In a real production app with auth, you would use Supabase Auth Admin API
+        // In admin panel demo, we're simply creating a profile entry directly
+        // Note: This is a simplified version for demonstration purposes
         const uniqueId = crypto.randomUUID();
+        
+        // Log the user making the request and their role
+        console.log('Current user:', currentSession.data.session.user.id);
+        console.log('User role:', currentSession.data.session.user.user_metadata?.role);
         
         const { error } = await supabase
           .from('profiles')
@@ -140,9 +151,13 @@ export default function useUserManagement() {
             community_id: data.communityId === 'none' ? null : data.communityId || null,
           });
 
-        if (error) throw error;
-        toast.success('User created successfully');
-        toast.info('Note: In production, user creation would use Supabase Auth API');
+        if (error) {
+          console.error('Insert error details:', error);
+          throw error;
+        }
+        
+        toast.success('User profile created successfully');
+        toast.info('In a production app, this would use the Supabase Auth API');
       }
       
       setUserDialogOpen(false);
