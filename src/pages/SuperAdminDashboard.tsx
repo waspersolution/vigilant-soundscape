@@ -1,116 +1,14 @@
 
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/auth";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Users,
-  Home,
-  AlertCircle,
-  Map,
-  PhoneCall,
-  LineChart,
-  CreditCard,
-  ScrollText,
-  Building2
-} from "lucide-react";
-
-// Super Admin dashboard tabs
-import SuperAdminOverview from "@/components/super-admin/SuperAdminOverview";
-import UsersManagement from "@/components/super-admin/UsersManagement";
-import CommunitiesManagement from "@/components/super-admin/CommunitiesManagement";
-import AlertsMonitoring from "@/components/super-admin/AlertsMonitoring";
-import CommunicationMonitoring from "@/components/super-admin/CommunicationMonitoring";
-import SecurityTracking from "@/components/super-admin/SecurityTracking";
-import EmergencyContactsMonitoring from "@/components/super-admin/EmergencyContactsMonitoring";
-import SystemAnalytics from "@/components/super-admin/SystemAnalytics";
-import BillingManagement from "@/components/super-admin/BillingManagement";
-import AuditLogs from "@/components/super-admin/AuditLogs";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useAdminAccess } from "@/components/super-admin/useAdminAccess";
+import { SuperAdminLoadingState } from "@/components/super-admin/SuperAdminLoadingState";
+import { SuperAdminTabs } from "@/components/super-admin/SuperAdminTabs";
 
 export default function SuperAdminDashboard() {
-  const { user, isLoading } = useAuth();
-  const navigate = useNavigate();
-  const [accessChecked, setAccessChecked] = useState(false);
-
-  // Force update user role to super_admin on first load
-  useEffect(() => {
-    const forceUpdateSuperAdminRole = async () => {
-      if (user?.email === "wasperstore@gmail.com") {
-        console.log("SuperAdminDashboard - Forcing super_admin role update");
-        try {
-          const { error } = await supabase.auth.updateUser({
-            data: { 
-              role: 'super_admin',
-              full_name: 'Azeez Wosilat'
-            }
-          });
-          
-          if (error) {
-            console.error("Failed to update super admin role:", error);
-          } else {
-            console.log("Super admin role enforced successfully");
-            
-            // Refresh session to get updated metadata
-            const { data } = await supabase.auth.refreshSession();
-            if (data.session) {
-              console.log("Session refreshed with updated role");
-              
-              // Force page reload to ensure all components have the latest user data
-              window.location.reload(); 
-            }
-          }
-        } catch (err) {
-          console.error("Error enforcing super admin role:", err);
-        }
-      }
-    };
-    
-    if (!isLoading && user?.email === "wasperstore@gmail.com" && user.role !== "super_admin") {
-      console.log("SuperAdminDashboard - User email matched but role is not super_admin, enforcing...");
-      forceUpdateSuperAdminRole();
-    }
-  }, [isLoading, user]);
-
-  // Redirect if not a super admin
-  useEffect(() => {
-    console.log("SuperAdminDashboard - Auth check starting");
-    console.log("SuperAdminDashboard - User:", user);
-    console.log("SuperAdminDashboard - User role:", user?.role);
-    console.log("SuperAdminDashboard - User email:", user?.email);
-    console.log("SuperAdminDashboard - isLoading:", isLoading);
-    
-    // Only run access check once authentication has loaded
-    if (!isLoading) {
-      // Special case for wasperstore@gmail.com - always allow access
-      if (user?.email === "wasperstore@gmail.com") {
-        console.log("SuperAdminDashboard - Special super admin email detected, allowing access");
-        setAccessChecked(true);
-      }
-      // Check role-based access
-      else if (user?.role === "super_admin") {
-        console.log("SuperAdminDashboard - User has super_admin role, allowing access");
-        setAccessChecked(true);
-      } 
-      else {
-        console.log("SuperAdminDashboard - User is NOT a super admin, redirecting to home");
-        console.log("SuperAdminDashboard - User email:", user?.email);
-        console.log("SuperAdminDashboard - User role:", user?.role);
-        toast.error("You don't have permission to access this page");
-        navigate("/home", { replace: true });
-      }
-    }
-  }, [user, isLoading, navigate]);
+  const { isLoading, accessChecked } = useAdminAccess();
 
   // Show loading state while checking authentication
   if (isLoading || !accessChecked) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        <div className="ml-4">Verifying super admin access...</div>
-      </div>
-    );
+    return <SuperAdminLoadingState />;
   }
 
   return (
@@ -124,92 +22,7 @@ export default function SuperAdminDashboard() {
         </p>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <div className="overflow-auto">
-          <TabsList className="mb-4 flex w-full lg:w-auto p-1 bg-secondary/50 backdrop-blur-sm border border-border/30">
-            <TabsTrigger value="overview" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
-              <Home className="h-4 w-4" />
-              <span className="hidden sm:inline">Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Users</span>
-            </TabsTrigger>
-            <TabsTrigger value="communities" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
-              <Building2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Communities</span>
-            </TabsTrigger>
-            <TabsTrigger value="alerts" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
-              <AlertCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Alerts</span>
-            </TabsTrigger>
-            <TabsTrigger value="comms" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
-              <PhoneCall className="h-4 w-4" />
-              <span className="hidden sm:inline">Communications</span>
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
-              <Map className="h-4 w-4" />
-              <span className="hidden sm:inline">Security</span>
-            </TabsTrigger>
-            <TabsTrigger value="emergency" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
-              <PhoneCall className="h-4 w-4" />
-              <span className="hidden sm:inline">Emergency</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
-              <LineChart className="h-4 w-4" />
-              <span className="hidden sm:inline">Analytics</span>
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
-              <CreditCard className="h-4 w-4" />
-              <span className="hidden sm:inline">Billing</span>
-            </TabsTrigger>
-            <TabsTrigger value="logs" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:security-shadow">
-              <ScrollText className="h-4 w-4" />
-              <span className="hidden sm:inline">Audit Logs</span>
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        
-        <TabsContent value="overview" className="animate-fade-in shield-pattern">
-          <SuperAdminOverview />
-        </TabsContent>
-        
-        <TabsContent value="users" className="animate-fade-in shield-pattern">
-          <UsersManagement />
-        </TabsContent>
-        
-        <TabsContent value="communities" className="animate-fade-in shield-pattern">
-          <CommunitiesManagement />
-        </TabsContent>
-        
-        <TabsContent value="alerts" className="animate-fade-in shield-pattern">
-          <AlertsMonitoring />
-        </TabsContent>
-        
-        <TabsContent value="comms" className="animate-fade-in shield-pattern">
-          <CommunicationMonitoring />
-        </TabsContent>
-        
-        <TabsContent value="security" className="animate-fade-in shield-pattern">
-          <SecurityTracking />
-        </TabsContent>
-        
-        <TabsContent value="emergency" className="animate-fade-in shield-pattern">
-          <EmergencyContactsMonitoring />
-        </TabsContent>
-        
-        <TabsContent value="analytics" className="animate-fade-in shield-pattern">
-          <SystemAnalytics />
-        </TabsContent>
-        
-        <TabsContent value="billing" className="animate-fade-in shield-pattern">
-          <BillingManagement />
-        </TabsContent>
-        
-        <TabsContent value="logs" className="animate-fade-in shield-pattern">
-          <AuditLogs />
-        </TabsContent>
-      </Tabs>
+      <SuperAdminTabs />
     </div>
   );
 }
