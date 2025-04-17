@@ -35,12 +35,18 @@ export default function DashboardSettings() {
     try {
       const savedConfig = localStorage.getItem('dashboardConfig');
       if (savedConfig) {
-        setConfig(JSON.parse(savedConfig));
+        const parsedConfig = JSON.parse(savedConfig);
+        setConfig(parsedConfig);
+        
+        // Ensure theme context is synchronized with config
+        if (parsedConfig.theme && parsedConfig.theme !== theme) {
+          setTheme(parsedConfig.theme as "light" | "dark" | "system");
+        }
       }
     } catch (error) {
       console.error("Error loading dashboard configuration:", error);
     }
-  }, []);
+  }, [theme, setTheme]);
 
   // Save config when it changes
   const updateConfig = (updates: Partial<DashboardConfig>) => {
@@ -52,6 +58,14 @@ export default function DashboardSettings() {
       // If theme is changed, update the theme context
       if (updates.theme && updates.theme !== config.theme) {
         setTheme(updates.theme as "light" | "dark" | "system");
+        
+        // Force CSS class application
+        if (updates.theme === 'system') {
+          const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          document.documentElement.classList.toggle('dark', systemTheme === 'dark');
+        } else {
+          document.documentElement.classList.toggle('dark', updates.theme === 'dark');
+        }
       }
       
       toast.success("Dashboard settings updated");

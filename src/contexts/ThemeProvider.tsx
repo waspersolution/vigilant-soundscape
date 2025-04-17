@@ -44,13 +44,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Apply theme to document when it changes
   useEffect(() => {
-    // Apply the theme to the document
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      document.documentElement.classList.toggle('dark', systemTheme === 'dark');
-    } else {
-      document.documentElement.classList.toggle('dark', theme === 'dark');
-    }
+    const applyTheme = () => {
+      if (theme === 'system') {
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.classList.toggle('dark', systemTheme === 'dark');
+      } else {
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+      }
+    };
+
+    // Apply immediately
+    applyTheme();
+    
+    // Force a re-render to ensure UI components update
+    document.body.style.display = 'none';
+    setTimeout(() => {
+      document.body.style.display = '';
+    }, 0);
   }, [theme]);
 
   // Listen for system theme changes if using 'system' setting
