@@ -17,85 +17,108 @@ import Communication from "@/pages/Communication";
 import Settings from "@/pages/Settings";
 import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
 import NotFound from "@/pages/NotFound";
+import ErrorPage from "@/components/error/ErrorPage";
 import { AuthProvider } from "@/contexts/auth";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { AlertProvider } from "@/contexts/AlertContext";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
 import Voice from "./pages/Voice";
 import Index from "./pages/Index";
+import ErrorBoundary from "./components/error/ErrorBoundary";
 
 function App() {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 1,
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ThemeProvider>
-          <LocationProvider>
-            <AlertProvider>
-              <Toaster position="top-right" />
-              <RouterProvider
-                router={createBrowserRouter([
-                  {
-                    path: "/",
-                    element: <Index />
-                  },
-                  {
-                    path: "/home",
-                    element: <AppLayout><Home /></AppLayout>,
-                    errorElement: <NotFound />,
-                  },
-                  {
-                    path: "/map",
-                    element: <AppLayout><Map /></AppLayout>,
-                  },
-                  {
-                    path: "/patrol",
-                    element: <AppLayout><Patrol /></AppLayout>,
-                  },
-                  {
-                    path: "/alerts",
-                    element: <AppLayout><Alerts /></AppLayout>,
-                  },
-                  {
-                    path: "/community",
-                    element: <AppLayout><Community /></AppLayout>,
-                  },
-                  {
-                    path: "/communication",
-                    element: <AppLayout><Communication /></AppLayout>,
-                  },
-                  {
-                    path: "/communication/:channelId",
-                    element: <AppLayout><Communication /></AppLayout>,
-                  },
-                  {
-                    path: "/settings",
-                    element: <AppLayout><Settings /></AppLayout>,
-                  },
-                  {
-                    path: "/voice",
-                    element: <AppLayout><Voice /></AppLayout>,
-                  },
-                  {
-                    path: "/super-admin",
-                    element: <AppLayout><SuperAdminDashboard /></AppLayout>,
-                  },
-                  {
-                    path: "/auth",
-                    element: <Auth />,
-                  },
-                  {
-                    path: "*",
-                    element: <NotFound />,
-                  },
-                ])}
-              />
-            </AlertProvider>
-          </LocationProvider>
-        </ThemeProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ThemeProvider>
+            <LocationProvider>
+              <AlertProvider>
+                <Toaster position="top-right" />
+                <RouterProvider
+                  router={createBrowserRouter([
+                    {
+                      path: "/",
+                      element: <Index />,
+                      errorElement: <ErrorPage />
+                    },
+                    {
+                      path: "/home",
+                      element: <AppLayout><Home /></AppLayout>,
+                      errorElement: <ErrorPage />
+                    },
+                    {
+                      path: "/map",
+                      element: <AppLayout><Map /></AppLayout>,
+                      errorElement: <ErrorPage />
+                    },
+                    {
+                      path: "/patrol",
+                      element: <AppLayout><Patrol /></AppLayout>,
+                      errorElement: <ErrorPage />
+                    },
+                    {
+                      path: "/alerts",
+                      element: <AppLayout><Alerts /></AppLayout>,
+                      errorElement: <ErrorPage />
+                    },
+                    {
+                      path: "/community",
+                      element: <AppLayout><Community /></AppLayout>,
+                      errorElement: <ErrorPage />
+                    },
+                    {
+                      path: "/communication",
+                      element: <AppLayout><Communication /></AppLayout>,
+                      errorElement: <ErrorPage />
+                    },
+                    {
+                      path: "/communication/:channelId",
+                      element: <AppLayout><Communication /></AppLayout>,
+                      errorElement: <ErrorPage />
+                    },
+                    {
+                      path: "/settings",
+                      element: <AppLayout><Settings /></AppLayout>,
+                      errorElement: <ErrorPage />
+                    },
+                    {
+                      path: "/voice",
+                      element: <AppLayout><Voice /></AppLayout>,
+                      errorElement: <ErrorPage />
+                    },
+                    {
+                      path: "/super-admin",
+                      element: <AppLayout><SuperAdminDashboard /></AppLayout>,
+                      errorElement: <ErrorPage />
+                    },
+                    {
+                      path: "/auth",
+                      element: <Auth />,
+                      errorElement: <ErrorPage />
+                    },
+                    {
+                      path: "*",
+                      element: <NotFound />,
+                      errorElement: <ErrorPage />
+                    },
+                  ])}
+                />
+              </AlertProvider>
+            </LocationProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
