@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Channel, Message, User, Community, EmergencyContact } from "@/types";
 import { toast } from "sonner";
@@ -229,7 +228,7 @@ export async function fetchEmergencyContacts(communityId: string): Promise<Emerg
     
     if (error) throw error;
     
-    return data.emergency_contacts || [];
+    return data.emergency_contacts as EmergencyContact[] || [];
   } catch (error) {
     console.error("Error fetching emergency contacts:", error);
     toast.error("Failed to fetch emergency contacts");
