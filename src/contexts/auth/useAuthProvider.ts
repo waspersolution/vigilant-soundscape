@@ -112,6 +112,22 @@ export function useAuthProvider() {
 
       console.log("Login successful");
       toast.success("Login successful");
+      
+      // Force update user role from metadata
+      if (data.user) {
+        const metadataRole = data.user.user_metadata?.role;
+        const fullName = data.user.user_metadata?.full_name || 'User';
+        
+        // Create user object with metadata
+        const userWithRole: UserWithRole = {
+          ...data.user,
+          role: metadataRole || 'member',
+          fullName: fullName
+        };
+        
+        console.log("Updated user with role after login:", userWithRole);
+        setUser(userWithRole);
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "Failed to login");

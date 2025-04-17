@@ -25,9 +25,9 @@ class SuperAdminHandler {
       if (signInData.user) {
         console.log("Super admin user found, logging in:", signInData.user.id);
         
-        // Set user metadata directly instead of trying to update the profile
-        // This avoids the infinite recursion issue
+        // Update user metadata with super_admin role
         try {
+          console.log("Updating user metadata with super_admin role");
           const { error: metadataError } = await supabase.auth.updateUser({
             data: { 
               role: 'super_admin',
@@ -41,6 +41,12 @@ class SuperAdminHandler {
           } else {
             console.log("User metadata updated successfully");
             toast.success("Super admin login successful");
+            
+            // Refresh the session to get updated metadata
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+            if (!refreshError) {
+              console.log("Session refreshed with updated metadata");
+            }
           }
         } catch (updateError: any) {
           console.error("Metadata update exception:", updateError);

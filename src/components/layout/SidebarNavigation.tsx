@@ -26,7 +26,7 @@ export default function SidebarNavigation({ user }: SidebarNavigationProps) {
     
     // Basic navigation items for all users
     const baseItems = [
-      { href: "/", icon: Home, label: "Home" },
+      { href: "/home", icon: Home, label: "Home" },
       { href: "/alerts", icon: Bell, label: "Alerts" },
       { href: "/map", icon: Map, label: "Map" },
       { href: "/patrol", icon: Shield, label: "Patrol" },

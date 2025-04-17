@@ -21,6 +21,7 @@ import { AuthProvider } from "@/contexts/auth";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { AlertProvider } from "@/contexts/AlertContext";
 import Voice from "./pages/Voice";
+import Index from "./pages/Index";
 
 function App() {
   const queryClient = new QueryClient();
@@ -35,27 +36,55 @@ function App() {
               router={createBrowserRouter([
                 {
                   path: "/",
-                  element: <AppLayout><Outlet /></AppLayout>,
+                  element: <Index />
+                },
+                {
+                  path: "/home",
+                  element: <AppLayout><Home /></AppLayout>,
                   errorElement: <NotFound />,
-                  children: [
-                    { path: "/", element: <Home /> },
-                    { path: "/map", element: <Map /> },
-                    { path: "/patrol", element: <Patrol /> },
-                    { path: "/alerts", element: <Alerts /> },
-                    { path: "/community", element: <Community /> },
-                    { path: "/communication", element: <Communication /> },
-                    { path: "/communication/:channelId", element: <Communication /> },
-                    { path: "/settings", element: <Settings /> },
-                    { path: "/voice", element: <Voice /> },
-                    { path: "/super-admin", element: <SuperAdminDashboard /> },
-                  ],
+                },
+                {
+                  path: "/map",
+                  element: <AppLayout><Map /></AppLayout>,
+                },
+                {
+                  path: "/patrol",
+                  element: <AppLayout><Patrol /></AppLayout>,
+                },
+                {
+                  path: "/alerts",
+                  element: <AppLayout><Alerts /></AppLayout>,
+                },
+                {
+                  path: "/community",
+                  element: <AppLayout><Community /></AppLayout>,
+                },
+                {
+                  path: "/communication",
+                  element: <AppLayout><Communication /></AppLayout>,
+                },
+                {
+                  path: "/communication/:channelId",
+                  element: <AppLayout><Communication /></AppLayout>,
+                },
+                {
+                  path: "/settings",
+                  element: <AppLayout><Settings /></AppLayout>,
+                },
+                {
+                  path: "/voice",
+                  element: <AppLayout><Voice /></AppLayout>,
+                },
+                {
+                  path: "/super-admin",
+                  element: <AppLayout><SuperAdminDashboard /></AppLayout>,
                 },
                 {
                   path: "/auth",
                   element: <Auth />,
                 },
                 {
-                  path: "/*",
+                  path: "*",
                   element: <NotFound />,
                 },
               ])}

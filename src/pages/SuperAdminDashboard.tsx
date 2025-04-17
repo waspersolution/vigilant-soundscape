@@ -26,6 +26,7 @@ import EmergencyContactsMonitoring from "@/components/super-admin/EmergencyConta
 import SystemAnalytics from "@/components/super-admin/SystemAnalytics";
 import BillingManagement from "@/components/super-admin/BillingManagement";
 import AuditLogs from "@/components/super-admin/AuditLogs";
+import { toast } from "sonner";
 
 export default function SuperAdminDashboard() {
   const { user, isLoading } = useAuth();
@@ -36,6 +37,7 @@ export default function SuperAdminDashboard() {
   useEffect(() => {
     console.log("SuperAdminDashboard - Auth check starting");
     console.log("SuperAdminDashboard - User:", user);
+    console.log("SuperAdminDashboard - User role:", user?.role);
     console.log("SuperAdminDashboard - isLoading:", isLoading);
     
     if (!isLoading) {
@@ -47,7 +49,8 @@ export default function SuperAdminDashboard() {
         if (user) {
           console.log("SuperAdminDashboard - User role:", user.role);
         }
-        navigate("/");
+        toast.error("You don't have permission to access this page");
+        navigate("/home");
       }
     }
   }, [user, isLoading, navigate]);
@@ -63,7 +66,11 @@ export default function SuperAdminDashboard() {
 
   // If not a super admin, this will render before redirecting
   if (!isSuperAdmin) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (

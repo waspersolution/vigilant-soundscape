@@ -13,7 +13,7 @@ export default function Index() {
     if (!isLoading) {
       if (isAuthenticated) {
         console.log("User is authenticated, navigating to home page");
-        navigate("/", { replace: true });
+        navigate("/home", { replace: true });
       } else {
         console.log("User is not authenticated, navigating to auth page");
         navigate("/auth", { replace: true });

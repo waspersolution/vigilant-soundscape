@@ -29,7 +29,7 @@ const MobileNavMenu = ({ onLinkClick, userRole }: MobileNavMenuProps) => {
     // Base navigation items for all users
     const baseItems = [
       {
-        href: "/",
+        href: "/home",
         icon: <Home className="h-5 w-5" />,
         title: "Home",
       },
