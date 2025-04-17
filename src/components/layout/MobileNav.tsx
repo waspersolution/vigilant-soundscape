@@ -1,6 +1,12 @@
+
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, RadioTower, Settings, Bell, User, LogOut, MessageCircle, Users } from "lucide-react";
+import { Menu, RadioTower, Settings, Bell, User, LogOut, MessageCircle } from "lucide-react";
+import { 
+  MapPin,
+  BadgeCheck,
+  AlertTriangle,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
