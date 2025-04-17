@@ -51,14 +51,14 @@ export default function UserFormDialog({
         fullName: editingUser.fullName,
         email: editingUser.email,
         role: editingUser.role,
-        communityId: editingUser.communityId || '',
+        communityId: editingUser.communityId || 'none',
       });
     } else {
       userForm.reset({
         fullName: '',
         email: '',
         role: 'member',
-        communityId: '',
+        communityId: 'none',
       });
     }
   }, [editingUser, userForm]);
@@ -116,7 +116,7 @@ export default function UserFormDialog({
                   <FormLabel>Role</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -145,7 +145,7 @@ export default function UserFormDialog({
                   <FormLabel>Community</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value || undefined}
+                    value={field.value || 'none'}
                   >
                     <FormControl>
                       <SelectTrigger>

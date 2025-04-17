@@ -21,50 +21,42 @@ export default function useUserManagement() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
+    fetchCommunities(); // Fetch communities first
     fetchUsers();
-    fetchCommunities();
   }, []);
 
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      // Simplified query to avoid infinite recursion in policy
-      const { data, error } = await supabase
+      console.log("Fetching users...");
+      // Use a simple query to avoid recursion in RLS policies
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          full_name,
-          email,
-          role,
-          community_id,
-          online_status,
-          last_location
-        `);
+        .select('id, full_name, email, role, community_id, online_status, last_location');
 
-      if (error) {
-        throw error;
+      if (profilesError) {
+        throw profilesError;
       }
 
-      // Get communities in a separate query if needed
-      const communityMap = new Map();
-      if (communities.length > 0) {
-        communities.forEach(community => {
-          communityMap.set(community.id, community.name);
-        });
-      }
-
-      const transformedUsers: UserWithCommunity[] = data.map(profile => ({
-        id: profile.id,
-        fullName: profile.full_name,
-        email: profile.email,
-        role: profile.role,
-        communityId: profile.community_id || undefined,
-        onlineStatus: profile.online_status || false,
-        lastLocation: profile.last_location as any,
-        communityName: profile.community_id ? communityMap.get(profile.community_id) : undefined
-      }));
+      // Get communities data to map community IDs to names
+      const transformedUsers: UserWithCommunity[] = profilesData.map(profile => {
+        // Find matching community
+        const community = communities.find(c => c.id === profile.community_id);
+        
+        return {
+          id: profile.id,
+          fullName: profile.full_name,
+          email: profile.email,
+          role: profile.role,
+          communityId: profile.community_id || undefined,
+          onlineStatus: profile.online_status || false,
+          lastLocation: profile.last_location as any,
+          communityName: community ? community.name : undefined
+        };
+      });
 
       setUsers(transformedUsers);
+      console.log("Users fetched successfully:", transformedUsers.length);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to load users');
@@ -83,7 +75,7 @@ export default function useUserManagement() {
         throw error;
       }
 
-      setCommunities(data);
+      setCommunities(data || []);
     } catch (error) {
       console.error('Error fetching communities:', error);
       toast.error('Failed to load communities');
@@ -109,24 +101,39 @@ export default function useUserManagement() {
     setIsSubmitting(true);
     try {
       if (editingUser) {
+        // Update existing user
         const { error } = await supabase
           .from('profiles')
           .update({
             full_name: data.fullName,
             email: data.email,
             role: data.role,
-            community_id: data.communityId || null,
+            community_id: data.communityId === 'none' ? null : data.communityId || null,
           })
           .eq('id', editingUser.id);
 
         if (error) throw error;
         toast.success('User updated successfully');
       } else {
-        toast.success('User creation would be implemented with Supabase Admin API');
+        // Create new user - simplified implementation for demo
+        // In a real app, you would use Auth API or Admin API
+        const { data: newUser, error } = await supabase
+          .from('profiles')
+          .insert({
+            full_name: data.fullName,
+            email: data.email,
+            role: data.role,
+            community_id: data.communityId === 'none' ? null : data.communityId || null,
+            id: crypto.randomUUID(), // Generate a UUID for demo purposes
+          })
+          .select();
+
+        if (error) throw error;
+        toast.success('User created successfully');
       }
       
       setUserDialogOpen(false);
-      fetchUsers();
+      fetchUsers(); // Refresh user list
     } catch (error: any) {
       console.error('Error saving user:', error);
       toast.error(error.message || 'Failed to save user');
@@ -140,9 +147,17 @@ export default function useUserManagement() {
     
     setIsDeleting(true);
     try {
-      toast.success('User deletion would be implemented with Supabase Admin API');
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userToDelete.id);
+        
+      if (error) throw error;
+      
+      toast.success('User deleted successfully');
       setDeleteDialogOpen(false);
       
+      // Update local state to reflect changes
       setUsers(users.filter(user => user.id !== userToDelete.id));
     } catch (error: any) {
       console.error('Error deleting user:', error);
