@@ -1,166 +1,193 @@
+import React, { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, RadioTower, Settings, Bell, User, LogOut } from "lucide-react";
 
-import { Fragment, useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Bell, Home, Map, Shield, Settings, Menu, Users, X, User } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogOverlay } from "@/components/ui/dialog";
-import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
-interface NavItemProps {
+interface NavItem {
   href: string;
-  icon: React.ElementType;
-  label: string;
-  active?: boolean;
-  onClick?: () => void;
+  icon: React.ReactNode;
+  title: string;
 }
 
-const NavItem = ({ href, icon: Icon, label, active, onClick }: NavItemProps) => {
-  return (
-    <Link
-      to={href}
-      className={cn(
-        "flex items-center gap-2 p-3 text-sm font-medium rounded-md transition-colors",
-        active
-          ? "bg-primary/10 text-primary"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-      )}
-      onClick={onClick}
-    >
-      <Icon className="h-5 w-5" />
-      {label}
-    </Link>
-  );
-};
+const navItems: NavItem[] = [
+  {
+    href: "/map",
+    icon: <MapPin className="h-5 w-5" />,
+    title: "Map",
+  },
+  {
+    href: "/patrol",
+    icon: <BadgeCheck className="h-5 w-5" />,
+    title: "Patrol",
+  },
+  {
+    href: "/alerts",
+    icon: <AlertTriangle className="h-5 w-5" />,
+    title: "Alerts",
+  },
+  {
+    href: "/community",
+    icon: <Users className="h-5 w-5" />,
+    title: "Community",
+  },
+];
 
-export default function MobileNav() {
-  const [isOpen, setIsOpen] = useState(false);
-  const location = useLocation();
-  const { user } = useAuth();
+const MobileNav = () => {
+  const { user, isAuthenticated, logout } = useAuth();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
 
-  // Close mobile nav when route changes
-  useEffect(() => {
-    setIsOpen(false);
-  }, [location.pathname]);
+  const [open, setOpen] = useState(false);
 
-  // Get user initials for avatar
-  const getUserInitials = () => {
-    if (!user?.fullName) return "U";
-    
-    const nameParts = user.fullName.split(" ");
-    if (nameParts.length === 1) return nameParts[0].charAt(0).toUpperCase();
-    
-    return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/auth");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
   return (
-    <>
-      <div className="fixed top-0 left-0 right-0 h-14 bg-background border-b z-20 flex items-center justify-between px-4 md:hidden">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="md:hidden"
-          aria-label="Open menu"
+    <div className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px]">
+      <Link
+        to="/"
+        className="hidden gap-1 font-semibold uppercase lg:inline-flex"
+      >
+        VigilPro
+      </Link>
+      <button
+        type="button"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-md lg:hidden"
+        onClick={() => setOpen(true)}
+      >
+        <Menu className="h-6 w-6" />
+        <span className="sr-only">Toggle navigation menu</span>
+      </button>
+      <div className="flex w-full flex-1 items-center gap-1 lg:gap-2">
+        {navItems.map((item, index) => (
+          <Button
+            key={index}
+            variant={pathname === item.href ? "default" : "ghost"}
+            className={pathname === item.href ? "" : "text-muted-foreground"}
+            asChild
+          >
+            <Link to={item.href}>
+              {item.icon}
+              <span className="ml-2 hidden lg:inline-flex">{item.title}</span>
+            </Link>
+          </Button>
+        ))}
+        <Button
+          variant={pathname === "/voice" ? "default" : "ghost"}
+          className={pathname === "/voice" ? "" : "text-muted-foreground"}
+          asChild
         >
-          <Menu className="h-6 w-6 text-primary" />
-        </button>
-        
-        <Link to="/" className="text-xl font-semibold text-primary">
-          VigilPro
-        </Link>
-        
-        <Link to="/settings" className="md:hidden">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-primary/10 text-primary">
-              {getUserInitials()}
-            </AvatarFallback>
-          </Avatar>
-        </Link>
+          <Link to="/voice">
+            <RadioTower className="h-5 w-5" />
+            <span className="ml-2 hidden lg:inline-flex">Voice</span>
+          </Link>
+        </Button>
       </div>
-
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogOverlay className="md:hidden" />
-        <DialogContent className="fixed inset-y-0 left-0 p-0 border-r max-w-[75%] md:hidden rounded-none data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left">
-          <div className="flex flex-col h-full bg-background">
-            <div className="px-4 py-6 border-b">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-primary">VigilPro</h2>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-1 rounded-full hover:bg-muted"
-                  aria-label="Close menu"
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <span className="hidden">Open mobile navigation</span>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-60 sm:max-w-xs">
+          <Link
+            to="/"
+            className="flex items-center gap-1 font-semibold uppercase"
+            onClick={() => setOpen(false)}
+          >
+            VigilPro
+          </Link>
+          <nav className="mt-8 flex flex-col gap-6">
+            <div className="flex flex-col gap-3">
+              {navItems.map((item, index) => (
+                <Button
+                  key={index}
+                  variant="ghost"
+                  className={cn(
+                    "justify-start px-2",
+                    pathname === item.href && "bg-muted"
+                  )}
+                  asChild
                 >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-              
-              {user && (
-                <div className="mt-4 flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      {getUserInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium text-sm">{user.fullName}</p>
-                    <p className="text-xs text-muted-foreground">{user.role}</p>
-                  </div>
-                </div>
-              )}
+                  <Link to={item.href} onClick={() => setOpen(false)}>
+                    {item.icon}
+                    <span className="ml-2">{item.title}</span>
+                  </Link>
+                </Button>
+              ))}
+              <Button
+                variant="ghost"
+                className={cn(
+                  "justify-start px-2",
+                  pathname === "/voice" && "bg-muted"
+                )}
+                asChild
+              >
+                <Link to="/voice" onClick={() => setOpen(false)}>
+                  <RadioTower className="h-5 w-5" />
+                  <span className="ml-2">Voice</span>
+                </Link>
+              </Button>
             </div>
-
-            <div className="flex-1 px-4 py-6 overflow-auto">
-              <nav className="space-y-2">
-                <NavItem
-                  href="/"
-                  icon={Home}
-                  label="Home"
-                  active={location.pathname === "/"}
-                  onClick={() => setIsOpen(false)}
-                />
-                <NavItem
-                  href="/alerts"
-                  icon={Bell}
-                  label="Alerts"
-                  active={location.pathname === "/alerts"}
-                  onClick={() => setIsOpen(false)}
-                />
-                <NavItem
-                  href="/map"
-                  icon={Map}
-                  label="Map"
-                  active={location.pathname === "/map"}
-                  onClick={() => setIsOpen(false)}
-                />
-                <NavItem
-                  href="/patrol"
-                  icon={Shield}
-                  label="Patrol"
-                  active={location.pathname === "/patrol"}
-                  onClick={() => setIsOpen(false)}
-                />
-                <NavItem
-                  href="/community"
-                  icon={Users}
-                  label="Communities"
-                  active={location.pathname === "/community"}
-                  onClick={() => setIsOpen(false)}
-                />
-                <NavItem
-                  href="/settings"
-                  icon={Settings}
-                  label="Settings"
-                  active={location.pathname === "/settings"}
-                  onClick={() => setIsOpen(false)}
-                />
-              </nav>
+            <div className="flex flex-col gap-3">
+              <Button variant="ghost" className="justify-start px-2" asChild>
+                <Link to="/settings" onClick={() => setOpen(false)}>
+                  <Settings className="h-5 w-5" />
+                  <span className="ml-2">Settings</span>
+                </Link>
+              </Button>
+              <Button variant="ghost" className="justify-start px-2">
+                <Bell className="h-5 w-5" />
+                <span className="ml-2">Notifications</span>
+              </Button>
+              {isAuthenticated && user ? (
+                <>
+                  <Button variant="ghost" className="justify-start px-2" asChild>
+                    <Link to="/profile" onClick={() => setOpen(false)}>
+                      <User className="h-5 w-5" />
+                      <span className="ml-2">Profile</span>
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start px-2"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <span className="ml-2">Logout</span>
+                  </Button>
+                </>
+              ) : null}
             </div>
-            
-            <div className="px-4 py-4 border-t">
-              <p className="text-xs text-muted-foreground">VigilPro v1.0</p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+          </nav>
+        </SheetContent>
+      </Sheet>
+      {isAuthenticated && user ? (
+        <div className="flex items-center gap-2">
+          <Bell className="h-5 w-5 lg:hidden" />
+          <Avatar className="h-9 w-9">
+            <AvatarImage src="https://github.com/shadcn.png" alt="Avatar" />
+            <AvatarFallback>{user.fullName?.substring(0, 2).toUpperCase() || 'U'}</AvatarFallback>
+          </Avatar>
+        </div>
+      ) : null}
+    </div>
   );
-}
+};
+
+export default MobileNav;
+import {
+  MapPin,
+  BadgeCheck,
+  AlertTriangle,
+  Users,
+} from "lucide-react";
