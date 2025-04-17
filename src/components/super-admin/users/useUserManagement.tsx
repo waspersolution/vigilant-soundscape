@@ -115,6 +115,13 @@ export default function useUserManagement() {
         throw new Error("You must be logged in to perform this action");
       }
 
+      // Check if this is an admin or super_admin user
+      const isAdminUser = data.role === 'admin' || data.role === 'super_admin';
+      
+      // Handle community ID - for admin users, we use null but treat differently in the UI
+      const communityId = isAdminUser ? null : 
+                         (data.communityId === 'none' ? null : data.communityId || null);
+
       if (editingUser) {
         // Update existing user
         const { error } = await supabase
@@ -123,7 +130,7 @@ export default function useUserManagement() {
             full_name: data.fullName,
             email: data.email,
             role: data.role,
-            community_id: data.communityId === 'none' ? null : data.communityId || null,
+            community_id: communityId,
           })
           .eq('id', editingUser.id);
 
@@ -148,7 +155,7 @@ export default function useUserManagement() {
             full_name: data.fullName,
             email: data.email,
             role: data.role,
-            community_id: data.communityId === 'none' ? null : data.communityId || null,
+            community_id: communityId,
           });
 
         if (error) {

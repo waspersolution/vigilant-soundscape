@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import DynamicDialog from "@/components/ui/dynamic-dialog";
 import { UserWithCommunity, UserFormValues } from "./types";
 import { Database } from "@/integrations/supabase/types";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // Create validation schema using zod
 const userFormSchema = z.object({
@@ -45,6 +45,11 @@ export default function UserFormDialog({
     }
   });
 
+  const selectedRole = userForm.watch('role');
+  
+  // Hide community selection for admin users
+  const shouldShowCommunity = selectedRole !== 'admin' && selectedRole !== 'super_admin';
+
   useEffect(() => {
     if (editingUser) {
       userForm.reset({
@@ -62,6 +67,13 @@ export default function UserFormDialog({
       });
     }
   }, [editingUser, userForm]);
+
+  // When role changes to admin, set communityId to 'all'
+  useEffect(() => {
+    if (selectedRole === 'admin' || selectedRole === 'super_admin') {
+      userForm.setValue('communityId', 'all');
+    }
+  }, [selectedRole, userForm]);
 
   return (
     <FormProvider {...userForm}>
@@ -137,34 +149,45 @@ export default function UserFormDialog({
               )}
             />
             
-            <FormField
-              control={userForm.control}
-              name="communityId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Community</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value || 'none'}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a community" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">No Community</SelectItem>
-                      {communities.map(community => (
-                        <SelectItem key={community.id} value={community.id}>
-                          {community.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {shouldShowCommunity && (
+              <FormField
+                control={userForm.control}
+                name="communityId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Community</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value || 'none'}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a community" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">No Community</SelectItem>
+                        {communities.map(community => (
+                          <SelectItem key={community.id} value={community.id}>
+                            {community.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
+            {!shouldShowCommunity && (
+              <FormItem>
+                <FormLabel>Community Access</FormLabel>
+                <div className="p-2 bg-muted rounded-md text-sm">
+                  {selectedRole === 'admin' ? 'Admin has access to all communities' : 'Super Admin has access to everything'}
+                </div>
+              </FormItem>
+            )}
           </div>
         </Form>
       </DynamicDialog>
