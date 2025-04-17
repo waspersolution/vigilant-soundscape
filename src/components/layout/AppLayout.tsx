@@ -36,6 +36,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     return <main className="min-h-screen">{children}</main>;
   }
 
+  // Basic navigation items for all users
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/alerts", icon: Bell, label: "Alerts" },
@@ -47,8 +48,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { href: "/settings", icon: Settings, label: "Settings" },
   ];
 
-  // Add Super Admin Dashboard link for super_admin users
+  // Check for super_admin role and add the admin dashboard link
+  console.log("Current user role:", user?.role);
   if (user?.role === 'super_admin') {
+    console.log("Adding super admin link to navigation");
+    // Use the spread operator to create a new array instead of modifying the existing one
     navItems.push({ href: "/super-admin", icon: Database, label: "Admin Dashboard" });
   }
 

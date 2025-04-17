@@ -41,16 +41,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
+      async (event, currentSession) => {
         console.log("Auth state changed:", event, !!currentSession);
         
         setSession(currentSession);
         
         if (currentSession) {
-          // Extract role from user metadata if available to avoid profiles table
+          console.log("Auth state changed - User metadata:", currentSession.user.user_metadata);
+          
+          // Extract role from user metadata first (for freshly logged in users)
+          const metadataRole = currentSession.user.user_metadata?.role as UserRole;
+          
+          // Create initial user object with metadata
           const userWithRole: UserWithRole = {
             ...currentSession.user,
-            role: (currentSession.user.user_metadata?.role as UserRole) || 'member',
+            role: metadataRole || 'member',
             fullName: currentSession.user.user_metadata?.full_name || 'User'
           };
           
@@ -78,16 +83,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (initialSession) {
           console.log("Found existing session:", initialSession.user.id);
+          console.log("User metadata:", initialSession.user.user_metadata);
+          
           setSession(initialSession);
           
-          // Extract role from user metadata to avoid profiles table query
+          // Extract role from user metadata
+          const metadataRole = initialSession.user.user_metadata?.role as UserRole;
+          
           const userWithRole: UserWithRole = {
             ...initialSession.user,
-            role: (initialSession.user.user_metadata?.role as UserRole) || 'member',
+            role: metadataRole || 'member',
             fullName: initialSession.user.user_metadata?.full_name || 'User'
           };
           
           setUser(userWithRole);
+          console.log("User with role set:", userWithRole);
           setIsLoading(false);
         } else {
           // No active session
@@ -192,7 +202,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   console.log("Auth context value:", { 
     user: !!user, 
     isLoading, 
-    isAuthenticated: !!user 
+    isAuthenticated: !!user,
+    userRole: user?.role
   });
 
   return (

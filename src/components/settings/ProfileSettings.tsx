@@ -30,6 +30,8 @@ export default function ProfileSettings() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  console.log("Current user in ProfileSettings:", user);
+
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProfileForm(prev => ({ ...prev, [name]: value }));
@@ -158,9 +160,16 @@ export default function ProfileSettings() {
               value={user?.role || "member"}
               disabled
             />
-            <p className="text-xs text-muted-foreground">
-              Roles are assigned by community administrators
-            </p>
+            {user?.role === 'super_admin' && (
+              <p className="text-xs text-green-600 dark:text-green-400">
+                You have super admin privileges
+              </p>
+            )}
+            {user?.role !== 'super_admin' && (
+              <p className="text-xs text-muted-foreground">
+                Roles are assigned by community administrators
+              </p>
+            )}
           </div>
           
           <div className="space-y-2">

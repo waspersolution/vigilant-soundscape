@@ -1,46 +1,19 @@
+
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, RadioTower, Settings, Bell, User, LogOut, MessageCircle } from "lucide-react";
+import { Menu, RadioTower, Settings, Bell, User, LogOut, MessageCircle, Database } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-
-interface NavItem {
-  href: string;
-  icon: React.ReactNode;
-  title: string;
-}
-
-const navItems: NavItem[] = [
-  {
-    href: "/map",
-    icon: <MapPin className="h-5 w-5" />,
-    title: "Map",
-  },
-  {
-    href: "/patrol",
-    icon: <BadgeCheck className="h-5 w-5" />,
-    title: "Patrol",
-  },
-  {
-    href: "/alerts",
-    icon: <AlertTriangle className="h-5 w-5" />,
-    title: "Alerts",
-  },
-  {
-    href: "/community",
-    icon: <Users className="h-5 w-5" />,
-    title: "Community",
-  },
-  {
-    href: "/communication",
-    icon: <MessageCircle className="h-5 w-5" />,
-    title: "Communication",
-  },
-];
+import {
+  MapPin,
+  BadgeCheck,
+  AlertTriangle,
+  Users,
+} from "lucide-react";
 
 const MobileNav = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -57,6 +30,44 @@ const MobileNav = () => {
       console.error("Logout failed", error);
     }
   };
+
+  // Base navigation items
+  const navItems = [
+    {
+      href: "/map",
+      icon: <MapPin className="h-5 w-5" />,
+      title: "Map",
+    },
+    {
+      href: "/patrol",
+      icon: <BadgeCheck className="h-5 w-5" />,
+      title: "Patrol",
+    },
+    {
+      href: "/alerts",
+      icon: <AlertTriangle className="h-5 w-5" />,
+      title: "Alerts",
+    },
+    {
+      href: "/community",
+      icon: <Users className="h-5 w-5" />,
+      title: "Community",
+    },
+    {
+      href: "/communication",
+      icon: <MessageCircle className="h-5 w-5" />,
+      title: "Communication",
+    },
+  ];
+
+  // Add super admin link if user has the role
+  if (user?.role === 'super_admin') {
+    navItems.push({
+      href: "/super-admin",
+      icon: <Database className="h-5 w-5" />,
+      title: "Admin",
+    });
+  }
 
   return (
     <div className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px]">
@@ -190,9 +201,3 @@ const MobileNav = () => {
 };
 
 export default MobileNav;
-import {
-  MapPin,
-  BadgeCheck,
-  AlertTriangle,
-  Users,
-} from "lucide-react";
