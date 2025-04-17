@@ -42,8 +42,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { href: "/map", icon: Map, label: "Map" },
     { href: "/patrol", icon: Shield, label: "Patrol" },
     { href: "/community", icon: Users, label: "Communities" },
-    { href: "/communication", icon: MessageCircle, label: "Communication" }, // Added communication route
-    { href: "/voice", icon: Radio, label: "Voice" },
+    { href: "/communication", icon: MessageCircle, label: "Text Communication" },
+    { href: "/voice", icon: Radio, label: "Walkie Talkie" },
     { href: "/settings", icon: Settings, label: "Settings" },
   ];
 
