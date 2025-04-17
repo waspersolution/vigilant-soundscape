@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Plus, Phone, Trash2, Save, AlertTriangle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ export default function EmergencyContacts() {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   
-  // Fetch emergency contacts
   const { data: contacts = [] } = useQuery({
     queryKey: ["emergencyContacts", user?.communityId],
     queryFn: () => fetchEmergencyContacts(user?.communityId || ""),
@@ -32,12 +30,10 @@ export default function EmergencyContacts() {
   
   const [editedContacts, setEditedContacts] = useState<EmergencyContact[]>(contacts);
   
-  // Update local state when contacts are loaded
   useEffect(() => {
     setEditedContacts(contacts);
   }, [contacts]);
   
-  // Handle saving emergency contacts
   const updateMutation = useMutation({
     mutationFn: (newContacts: EmergencyContact[]) => 
       updateEmergencyContacts(user?.communityId || "", newContacts),
@@ -92,7 +88,7 @@ export default function EmergencyContacts() {
       </div>
       <Separator />
       
-      <Alert variant="info" className="mb-4">
+      <Alert variant="destructive" className="mb-4">
         <Info className="h-4 w-4" />
         <AlertTitle>Emergency Contact Information</AlertTitle>
         <AlertDescription>
@@ -210,7 +206,6 @@ export default function EmergencyContacts() {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  // In a real app, this would initiate a phone call
                   window.open(`tel:${contact.phone}`);
                 }}
                 className="flex items-center gap-1"

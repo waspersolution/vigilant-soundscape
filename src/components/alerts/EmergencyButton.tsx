@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,11 +24,10 @@ export default function EmergencyButton() {
   const { createAlert, isLoading } = useAlert();
 
   const handleSendAlert = async () => {
-    // Priority mapping based on alert type
     const priorityMap = {
-      panic: 1, // Highest priority
+      panic: 1,
       emergency: 2,
-      patrol_stop: 4, // Lower priority
+      patrol_stop: 4,
     };
 
     try {
@@ -43,20 +41,17 @@ export default function EmergencyButton() {
     }
   };
 
-  // Mock voice recording functionality
   const toggleRecording = () => {
     if (isRecording) {
       setIsRecording(false);
-      // In a real implementation, we would stop recording and process the audio
       console.log("Voice recording stopped after", recordingTime, "seconds");
     } else {
       setIsRecording(true);
       setRecordingTime(0);
-      
-      // Start a timer to track recording duration
+
       const interval = setInterval(() => {
         setRecordingTime(prev => {
-          if (prev >= 60) { // Max 60 seconds
+          if (prev >= 60) {
             clearInterval(interval);
             setIsRecording(false);
             return prev;
@@ -64,13 +59,11 @@ export default function EmergencyButton() {
           return prev + 1;
         });
       }, 1000);
-      
-      // Store the interval ID to clear it later
+
       (window as any).recordingInterval = interval;
     }
   };
 
-  // Cleanup recording timer if dialog is closed
   const handleCloseDialog = () => {
     if (isRecording) {
       clearInterval((window as any).recordingInterval);
@@ -157,7 +150,7 @@ export default function EmergencyButton() {
                 </div>
                 
                 {alertType === "panic" && (
-                  <Alert variant="warning" className="mt-4">
+                  <Alert variant="destructive" className="mt-4">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Important</AlertTitle>
                     <AlertDescription>

@@ -89,11 +89,11 @@ export default function Alerts() {
             </TabsList>
             
             <TabsContent value="active">
-              <AlertsList showOnlyActive />
+              <AlertsList showOnlyActive={true} />
             </TabsContent>
             
             <TabsContent value="history">
-              <AlertsList showResolved />
+              <AlertsList showResolved={true} />
             </TabsContent>
           </Tabs>
         </div>

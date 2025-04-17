@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAlert } from "@/contexts/AlertContext";
 import { Button } from "@/components/ui/button";
@@ -9,10 +8,21 @@ import { AlertTriangle, CheckCircle, Siren, Radio, Info } from "lucide-react";
 import { Alert as AlertType } from "@/types";
 import { cn } from "@/lib/utils";
 
-export default function AlertsList() {
+interface AlertsListProps {
+  showOnlyActive?: boolean;
+  showResolved?: boolean;
+}
+
+export default function AlertsList({ showOnlyActive, showResolved }: AlertsListProps = {}) {
   const { alerts, activeAlerts, resolveAlert, isLoading } = useAlert();
-  const [selectedTab, setSelectedTab] = useState("active");
+  const [selectedTab, setSelectedTab] = useState(showResolved ? "resolved" : "active");
   const [selectedAlert, setSelectedAlert] = useState<AlertType | null>(null);
+
+  const displayedAlerts = showOnlyActive 
+    ? activeAlerts 
+    : showResolved 
+      ? alerts.filter(alert => alert.resolved)
+      : alerts;
 
   const resolvedAlerts = alerts.filter(alert => alert.resolved);
 
@@ -90,6 +100,115 @@ export default function AlertsList() {
     </div>
   );
 
+  if (showOnlyActive || showResolved) {
+    return (
+      <Card>
+        <CardContent className="p-0">
+          {displayedAlerts.length === 0 ? (
+            <div className="py-8 text-center">
+              {showResolved ? (
+                <>
+                  <Info className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-muted-foreground">No resolved alerts yet</p>
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-10 w-10 text-green-500 mx-auto mb-2" />
+                  <p className="text-muted-foreground">No active alerts</p>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="divide-y">
+              {displayedAlerts.map(renderAlertItem)}
+            </div>
+          )}
+        </CardContent>
+        
+        {selectedAlert && (
+          <Card className="mt-4">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className={cn(
+                  "p-2 rounded-full",
+                  selectedAlert.priority === 1 
+                    ? "bg-destructive/10" 
+                    : selectedAlert.priority === 2 
+                      ? "bg-amber-500/10" 
+                      : "bg-blue-500/10"
+                )}>
+                  {getAlertIcon(selectedAlert.type, selectedAlert.priority)}
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-medium">
+                      {selectedAlert.type === "panic" ? "Panic Alert" : 
+                       selectedAlert.type === "emergency" ? "Emergency" : 
+                       selectedAlert.type === "patrol_stop" ? "Patrol Notice" : 
+                       "System Alert"}
+                    </h3>
+                    <span className="text-sm text-muted-foreground">
+                      {formatDistanceToNow(new Date(selectedAlert.createdAt), { addSuffix: true })}
+                    </span>
+                  </div>
+                  <p className="text-sm mt-1">
+                    {selectedAlert.message || "No details provided"}
+                  </p>
+                  
+                  {selectedAlert.senderName && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Reported by: {selectedAlert.senderName}
+                    </p>
+                  )}
+
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-sm font-medium">Location</p>
+                    <p className="text-sm text-muted-foreground">
+                      Lat: {selectedAlert.location.latitude.toFixed(6)}, 
+                      Lng: {selectedAlert.location.longitude.toFixed(6)}
+                    </p>
+                  </div>
+                  
+                  {selectedAlert.resolved ? (
+                    <div className="mt-3 pt-3 border-t">
+                      <div className="flex items-center text-green-500 gap-1.5">
+                        <CheckCircle className="h-4 w-4" />
+                        <span className="text-sm font-medium">Resolved</span>
+                      </div>
+                      {selectedAlert.resolvedAt && (
+                        <p className="text-sm text-muted-foreground">
+                          {formatDistanceToNow(new Date(selectedAlert.resolvedAt), { addSuffix: true })}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        className="flex-1"
+                        variant="secondary"
+                        onClick={() => setSelectedAlert(null)}
+                      >
+                        Close
+                      </Button>
+                      <Button
+                        className="flex-1"
+                        variant={selectedAlert.priority <= 2 ? "destructive" : "default"}
+                        onClick={() => handleResolve(selectedAlert.id)}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Resolving..." : "Mark Resolved"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <Tabs defaultValue="active" value={selectedTab} onValueChange={setSelectedTab}>
@@ -140,7 +259,6 @@ export default function AlertsList() {
         </TabsContent>
       </Tabs>
 
-      {/* Alert Details */}
       {selectedAlert && (
         <Card className="mt-4">
           <CardContent className="p-4">
