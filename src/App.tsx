@@ -15,6 +15,7 @@ import Alerts from "@/pages/Alerts";
 import Community from "@/pages/Community";
 import Communication from "@/pages/Communication";
 import Settings from "@/pages/Settings";
+import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
 import NotFound from "@/pages/NotFound";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LocationProvider } from "@/contexts/LocationContext";
@@ -46,6 +47,7 @@ function App() {
                     { path: "/communication/:channelId", element: <Communication /> },
                     { path: "/settings", element: <Settings /> },
                     { path: "/voice", element: <Voice /> },
+                    { path: "/super-admin", element: <SuperAdminDashboard /> },
                   ],
                 },
                 {

@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import MobileNav from "./MobileNav";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Bell, Home, Map, Shield, Settings, Users, Radio, MessageCircle } from "lucide-react";
+import { Bell, Home, Map, Shield, Settings, Users, Radio, MessageCircle, Database } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -42,10 +42,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { href: "/map", icon: Map, label: "Map" },
     { href: "/patrol", icon: Shield, label: "Patrol" },
     { href: "/community", icon: Users, label: "Communities" },
-    { href: "/communication", icon: MessageCircle, label: "Communication" }, // Added communication route
+    { href: "/communication", icon: MessageCircle, label: "Communication" },
     { href: "/voice", icon: Radio, label: "Voice" },
     { href: "/settings", icon: Settings, label: "Settings" },
   ];
+
+  // Add Super Admin Dashboard link for super_admin users
+  if (user?.role === 'super_admin') {
+    navItems.push({ href: "/super-admin", icon: Database, label: "Admin Dashboard" });
+  }
 
   return (
     <SidebarProvider>
@@ -92,6 +97,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 {user && (
                   <p className="text-xs font-medium mt-1">
                     Logged in as {user.fullName}
+                    {user.role === 'super_admin' && ' (Super Admin)'}
                   </p>
                 )}
               </div>
