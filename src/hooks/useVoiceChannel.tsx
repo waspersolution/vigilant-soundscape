@@ -57,22 +57,22 @@ export function useVoiceChannel(channelId: string): VoiceChannelState {
       try {
         const { data, error } = await supabase
           .from('messages')
-          .select('id, senderId, type, audioUrl, createdAt, profiles(full_name)')
-          .eq('channelId', channelId)
+          .select('id, sender_id, type, audio_url, created_at, profiles(full_name)')
+          .eq('channel_id', channelId)
           .eq('type', 'audio')
-          .order('createdAt', { ascending: false })
+          .order('created_at', { ascending: false })
           .limit(10);
 
         if (error) throw error;
 
-        const formattedMessages: Message[] = data.map((msg) => ({
+        const formattedMessages: Message[] = (data || []).map((msg: any) => ({
           id: msg.id,
-          senderId: msg.senderId,
+          senderId: msg.sender_id,
           senderName: msg.profiles?.full_name,
           channelId,
           type: 'audio',
-          audioUrl: msg.audioUrl,
-          createdAt: msg.createdAt,
+          audioUrl: msg.audio_url,
+          createdAt: msg.created_at,
         }));
 
         setRecentMessages(formattedMessages);
@@ -134,7 +134,7 @@ export function useVoiceChannel(channelId: string): VoiceChannelState {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
-        filter: `channelId=eq.${channelId}`,
+        filter: `channel_id=eq.${channelId}`,
       }, payload => {
         if (payload.new && payload.new.type === 'audio') {
           fetchMessageDetails(payload.new.id);
@@ -161,12 +161,12 @@ export function useVoiceChannel(channelId: string): VoiceChannelState {
 
       const newMessage: Message = {
         id: data.id,
-        senderId: data.senderId,
+        senderId: data.sender_id,
         senderName: data.profiles?.full_name,
-        channelId: data.channelId,
+        channelId: data.channel_id,
         type: 'audio',
-        audioUrl: data.audioUrl,
-        createdAt: data.createdAt,
+        audioUrl: data.audio_url,
+        createdAt: data.created_at,
       };
 
       setRecentMessages(prev => [newMessage, ...prev].slice(0, 10));
@@ -229,9 +229,9 @@ export function useVoiceChannel(channelId: string): VoiceChannelState {
       setIsTransmitting(true);
       
       // Update presence state
-      const channel = supabase.getChannel(`voice-${channelId}`);
+      const channelSub = supabase.channel(`voice-${channelId}`);
       
-      await channel.track({
+      await channelSub.track({
         user: {
           id: user.id,
           fullName: user.fullName,
@@ -248,7 +248,7 @@ export function useVoiceChannel(channelId: string): VoiceChannelState {
           reader.onloadend = async () => {
             const base64data = (reader.result as string)?.split(',')[1];
             
-            await channel.send({
+            await channelSub.send({
               type: 'broadcast',
               event: 'voice-data',
               payload: {
@@ -283,8 +283,8 @@ export function useVoiceChannel(channelId: string): VoiceChannelState {
       setIsTransmitting(false);
       
       // Update presence state
-      const channel = supabase.getChannel(`voice-${channelId}`);
-      await channel.track({
+      const channelSub = supabase.channel(`voice-${channelId}`);
+      await channelSub.track({
         user: {
           id: user!.id,
           fullName: user!.fullName,
@@ -311,10 +311,10 @@ export function useVoiceChannel(channelId: string): VoiceChannelState {
         
         // Save metadata to database
         const { error: insertError } = await supabase.from('messages').insert({
-          senderId: user!.id,
-          channelId: channelId,
+          sender_id: user!.id,
+          channel_id: channelId,
           type: 'audio',
-          audioUrl: publicUrlData.publicUrl,
+          audio_url: publicUrlData.publicUrl,
         });
         
         if (insertError) throw insertError;

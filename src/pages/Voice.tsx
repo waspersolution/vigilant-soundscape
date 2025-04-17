@@ -35,16 +35,24 @@ export default function Voice() {
         const { data, error } = await supabase
           .from("channels")
           .select("*")
-          .eq("communityId", user.communityId)
+          .eq("community_id", user.communityId)
           .order("name");
 
         if (error) throw error;
 
-        setChannels(data || []);
+        // Transform the data to match Channel type
+        const transformedChannels: Channel[] = (data || []).map(channel => ({
+          id: channel.id,
+          communityId: channel.community_id,
+          name: channel.name,
+          type: channel.type as Channel["type"]
+        }));
+
+        setChannels(transformedChannels);
         
         // Select the first channel by default if there are channels
-        if (data && data.length > 0 && !selectedChannelId) {
-          setSelectedChannelId(data[0].id);
+        if (transformedChannels.length > 0 && !selectedChannelId) {
+          setSelectedChannelId(transformedChannels[0].id);
         }
       } catch (error) {
         console.error("Error fetching channels:", error);
@@ -66,16 +74,24 @@ export default function Voice() {
         .from("channels")
         .insert({
           name: newChannelName.trim(),
-          communityId: user.communityId,
+          community_id: user.communityId,
           type: newChannelType,
         })
-        .select();
+        .select()
+        .single();
 
       if (error) throw error;
       
-      if (data && data[0]) {
-        setChannels([...channels, data[0]]);
-        setSelectedChannelId(data[0].id);
+      if (data) {
+        const newChannel: Channel = {
+          id: data.id,
+          communityId: data.community_id,
+          name: data.name,
+          type: data.type as Channel["type"]
+        };
+
+        setChannels([...channels, newChannel]);
+        setSelectedChannelId(newChannel.id);
         toast.success(`Channel "${newChannelName}" created`);
         setNewChannelName("");
         setNewChannelType("general_chat");
