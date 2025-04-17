@@ -1,5 +1,7 @@
 
 import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,6 +9,14 @@ import DynamicDialog from "@/components/ui/dynamic-dialog";
 import { UserWithCommunity, UserFormValues } from "./types";
 import { Database } from "@/integrations/supabase/types";
 import { useEffect } from "react";
+
+// Create validation schema using zod
+const userFormSchema = z.object({
+  fullName: z.string().min(1, { message: "Name is required" }),
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  role: z.enum(["super_admin", "admin", "community_leader", "community_manager", "security_personnel", "member"]),
+  communityId: z.string().optional(),
+});
 
 interface UserFormDialogProps {
   open: boolean;
@@ -26,6 +36,7 @@ export default function UserFormDialog({
   onSubmit
 }: UserFormDialogProps) {
   const userForm = useForm<UserFormValues>({
+    resolver: zodResolver(userFormSchema),
     defaultValues: {
       fullName: '',
       email: '',

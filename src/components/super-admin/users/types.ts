@@ -1,5 +1,6 @@
 
 import { User } from "@/types";
+import { Database } from "@/integrations/supabase/types";
 
 export type UserWithCommunity = User & {
   communityName?: string;
@@ -8,6 +9,6 @@ export type UserWithCommunity = User & {
 export interface UserFormValues {
   fullName: string;
   email: string;
-  role: string;
+  role: Database["public"]["Enums"]["user_role"];
   communityId: string;
 }
