@@ -11,7 +11,7 @@ import {
   SidebarMenuItem, 
   SidebarMenuButton 
 } from "@/components/ui/sidebar";
-import { UserWithRole } from "@/contexts/AuthContext";
+import { UserWithRole } from "@/contexts/auth";
 
 interface SidebarNavigationProps {
   user: UserWithRole | null;

@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Users,
@@ -33,7 +33,9 @@ export default function SuperAdminDashboard() {
 
   // Redirect if not a super admin
   useEffect(() => {
+    console.log("SuperAdminDashboard - Current user:", user);
     if (user && user.role !== "super_admin") {
+      console.log("User is not a super admin, redirecting to home");
       navigate("/");
     }
   }, [user, navigate]);

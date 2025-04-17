@@ -12,7 +12,6 @@ import {
   MessageCircle
 } from "lucide-react";
 import MobileNavLink from "./MobileNavLink";
-import { UserWithRole } from "@/contexts/AuthContext";
 
 interface MobileNavMenuProps {
   onLinkClick: () => void;

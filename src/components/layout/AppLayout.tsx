@@ -1,6 +1,6 @@
 
 import React, { ReactNode, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import MobileNav from "./MobileNav";
 import { Sidebar, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";

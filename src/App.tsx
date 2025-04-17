@@ -17,7 +17,7 @@ import Communication from "@/pages/Communication";
 import Settings from "@/pages/Settings";
 import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
 import NotFound from "@/pages/NotFound";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/contexts/auth";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { AlertProvider } from "@/contexts/AlertContext";
 import Voice from "./pages/Voice";

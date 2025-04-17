@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { UserWithRole } from "@/contexts/AuthContext";
+import { UserWithRole } from "@/contexts/auth";
 
 interface AppFooterProps {
   user: UserWithRole | null;
