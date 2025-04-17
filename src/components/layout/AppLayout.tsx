@@ -1,3 +1,4 @@
+
 import React, { ReactNode, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileNav from "./MobileNav";
@@ -74,8 +75,18 @@ export default function AppLayout({ children }: AppLayoutProps) {
               </SidebarGroup>
             </SidebarContent>
             <SidebarFooter>
-              <div className="px-3 py-2">
-                <p className="text-xs text-muted-foreground">VigilPro v1.0</p>
+              <div className="px-3 py-2 text-center">
+                <p className="text-xs text-muted-foreground">
+                  VigilPro v1.0 by{' '}
+                  <Link 
+                    to="https://waspersolution.com/community" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="hover:text-primary transition-colors underline"
+                  >
+                    Wasper Solutions
+                  </Link>
+                </p>
                 {user && (
                   <p className="text-xs font-medium mt-1">
                     Logged in as {user.fullName}
