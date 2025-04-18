@@ -20,9 +20,29 @@ export function useUserDeletion(onSuccess: () => void) {
     setIsDeleting(true);
     try {
       // Check if user is logged in
-      const currentSession = await supabase.auth.getSession();
-      if (!currentSession.data.session) {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        throw new Error(`Session error: ${sessionError.message}`);
+      }
+      
+      if (!sessionData.session) {
         throw new Error("You must be logged in to perform this action");
+      }
+      
+      // Check if current user has admin permissions
+      const { data: currentUserData, error: currentUserError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', sessionData.session.user.id)
+        .single();
+        
+      if (currentUserError) {
+        throw new Error(`Permission error: ${currentUserError.message}`);
+      }
+      
+      if (!['admin', 'super_admin'].includes(currentUserData.role)) {
+        throw new Error("You don't have permission to delete users");
       }
       
       console.log("Deleting user:", userToDelete.id);
@@ -34,6 +54,9 @@ export function useUserDeletion(onSuccess: () => void) {
         
       if (error) {
         console.error("Error deleting user:", error);
+        if (error.message.includes("row-level security")) {
+          throw new Error("Permission denied: Row-level security policy violation");
+        }
         throw error;
       }
       

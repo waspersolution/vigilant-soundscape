@@ -9,6 +9,8 @@ import DynamicDialog from "@/components/ui/dynamic-dialog";
 import { UserWithCommunity, UserFormValues } from "./types";
 import { Database } from "@/integrations/supabase/types";
 import { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 // Create validation schema using zod
 const userFormSchema = z.object({
@@ -24,6 +26,7 @@ interface UserFormDialogProps {
   editingUser: UserWithCommunity | null;
   communities: { id: string; name: string }[];
   isSubmitting: boolean;
+  authError?: string | null;
   onSubmit: (data: UserFormValues) => Promise<void>;
 }
 
@@ -33,6 +36,7 @@ export default function UserFormDialog({
   editingUser,
   communities,
   isSubmitting,
+  authError,
   onSubmit
 }: UserFormDialogProps) {
   const userForm = useForm<UserFormValues>({
@@ -92,6 +96,13 @@ export default function UserFormDialog({
       >
         <Form {...userForm}>
           <div className="grid gap-4 py-4">
+            {authError && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{authError}</AlertDescription>
+              </Alert>
+            )}
+            
             <FormField
               control={userForm.control}
               name="fullName"

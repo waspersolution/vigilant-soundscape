@@ -11,12 +11,32 @@ export function useCommunityFetching() {
     setIsLoading(true);
     try {
       // Check if user is logged in
-      const currentSession = await supabase.auth.getSession();
-      if (!currentSession.data.session) {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw sessionError;
+      }
+      
+      if (!sessionData.session) {
         console.warn("User is not logged in, cannot fetch communities");
         setCommunities([]);
         setIsLoading(false);
         return;
+      }
+
+      // Check if current user has admin permissions
+      const { data: currentUserData, error: currentUserError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', sessionData.session.user.id)
+        .single();
+        
+      if (currentUserError) {
+        console.error('Permission error:', currentUserError);
+        if (!currentUserError.message.includes('No rows found')) {
+          throw currentUserError;
+        }
       }
 
       console.log("Fetching communities");
@@ -31,9 +51,9 @@ export function useCommunityFetching() {
 
       console.log("Fetched communities:", data?.length || 0);
       setCommunities(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching communities:', error);
-      toast.error('Failed to load communities');
+      toast.error('Failed to load communities: ' + (error.message || 'Unknown error'));
     } finally {
       setIsLoading(false);
     }

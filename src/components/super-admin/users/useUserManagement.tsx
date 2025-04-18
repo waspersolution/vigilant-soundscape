@@ -24,6 +24,7 @@ export default function useUserManagement() {
     setUserDialogOpen,
     isSubmitting,
     editingUser,
+    authError,
     handleCreateUser,
     handleEditUser,
     submitUserForm
@@ -61,6 +62,7 @@ export default function useUserManagement() {
     setUserDialogOpen,
     isSubmitting,
     editingUser,
+    authError,
     // Delete dialog
     deleteDialogOpen,
     setDeleteDialogOpen,

@@ -20,6 +20,7 @@ export default function UsersManagement() {
     setUserDialogOpen,
     isSubmitting,
     editingUser,
+    authError,
     deleteDialogOpen,
     setDeleteDialogOpen,
     userToDelete,
@@ -68,6 +69,7 @@ export default function UsersManagement() {
         editingUser={editingUser}
         communities={communities}
         isSubmitting={isSubmitting}
+        authError={authError}
         onSubmit={submitUserForm}
       />
 
