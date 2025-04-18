@@ -25,8 +25,39 @@ export function useCommunityFetching() {
         return;
       }
 
+      // Verify current user's role is super_admin
+      const { data: currentUserData, error: currentUserError } = await supabase
+        .from('profiles')
+        .select('role, email')
+        .eq('id', sessionData.session.user.id)
+        .single();
+      
+      if (currentUserError) {
+        console.error("Error fetching current user role:", currentUserError);
+        if (currentUserError.message.includes("no rows found")) {
+          // User profile doesn't exist - rare case
+          console.warn("User profile not found");
+          setCommunities([]);
+          setIsLoading(false);
+          return;
+        }
+        throw new Error("Failed to verify your permissions");
+      }
+      
+      const isCurrentUserSuperAdmin = 
+        currentUserData.role === 'super_admin' || 
+        currentUserData.email === 'wasperstore@gmail.com';
+      
+      if (!isCurrentUserSuperAdmin) {
+        console.warn("User does not have super_admin role");
+        setCommunities([]);
+        setIsLoading(false);
+        return;
+      }
+
       console.log("Fetching communities");
       console.log("Current user ID:", sessionData.session.user.id);
+      console.log("Current user role:", currentUserData.role);
       
       const { data, error } = await supabase
         .from('communities')
@@ -34,11 +65,6 @@ export function useCommunityFetching() {
 
       if (error) {
         console.error('Error fetching communities:', error);
-        if (error.message.includes("policy")) {
-          toast.error('Permission denied: You do not have access to view communities');
-          setCommunities([]);
-          return;
-        }
         throw error;
       }
 
@@ -47,6 +73,7 @@ export function useCommunityFetching() {
     } catch (error: any) {
       console.error('Error fetching communities:', error);
       toast.error('Failed to load communities: ' + (error.message || 'Unknown error'));
+      setCommunities([]);
     } finally {
       setIsLoading(false);
     }

@@ -30,8 +30,29 @@ export function useUserDeletion(onSuccess: () => void) {
         throw new Error("You must be logged in to perform this action");
       }
       
+      // Verify current user's role is super_admin
+      const { data: currentUserData, error: currentUserError } = await supabase
+        .from('profiles')
+        .select('role, email')
+        .eq('id', sessionData.session.user.id)
+        .single();
+      
+      if (currentUserError) {
+        console.error("Error fetching current user role:", currentUserError);
+        throw new Error("Failed to verify your permissions");
+      }
+      
+      const isCurrentUserSuperAdmin = 
+        currentUserData.role === 'super_admin' || 
+        currentUserData.email === 'wasperstore@gmail.com';
+      
+      if (!isCurrentUserSuperAdmin) {
+        throw new Error("Permission denied: Only super admins can delete users");
+      }
+      
       console.log("Deleting user:", userToDelete.id);
       console.log("Current user ID:", sessionData.session.user.id);
+      console.log("Current user role:", currentUserData.role);
       
       const { data, error } = await supabase
         .from('profiles')
@@ -41,10 +62,7 @@ export function useUserDeletion(onSuccess: () => void) {
         
       if (error) {
         console.error("Error deleting user:", error);
-        if (error.message.includes("policy")) {
-          throw new Error("Permission denied: You don't have the right permissions to delete users");
-        }
-        throw error;
+        throw new Error(`Failed to delete user: ${error.message}`);
       }
       
       console.log("User deleted successfully:", data);

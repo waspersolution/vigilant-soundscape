@@ -43,6 +43,26 @@ export function useUserDialog(onSuccess: () => void) {
         throw new Error("You must be logged in to perform this action");
       }
       
+      // Verify current user's role is super_admin
+      const { data: currentUserData, error: currentUserError } = await supabase
+        .from('profiles')
+        .select('role, email')
+        .eq('id', sessionData.session.user.id)
+        .single();
+      
+      if (currentUserError) {
+        console.error("Error fetching current user role:", currentUserError);
+        throw new Error("Failed to verify your permissions");
+      }
+      
+      const isCurrentUserSuperAdmin = 
+        currentUserData.role === 'super_admin' || 
+        currentUserData.email === 'wasperstore@gmail.com';
+      
+      if (!isCurrentUserSuperAdmin) {
+        throw new Error("Permission denied: Only super admins can manage users");
+      }
+      
       // Process community ID based on role selection
       const isAdminUser = data.role === 'admin' || data.role === 'super_admin';
       const communityId = isAdminUser ? null : 
@@ -50,6 +70,7 @@ export function useUserDialog(onSuccess: () => void) {
       
       console.log("Submitting user form with data:", data);
       console.log("Current user ID:", sessionData.session.user.id);
+      console.log("Current user role:", currentUserData.role);
       console.log("Processed communityId:", communityId);
 
       if (editingUser) {
@@ -67,10 +88,7 @@ export function useUserDialog(onSuccess: () => void) {
 
         if (error) {
           console.error("Error updating user:", error);
-          if (error.message.includes("policy")) {
-            throw new Error("Permission denied: You don't have the right permissions to update this user");
-          }
-          throw error;
+          throw new Error(`Failed to update user: ${error.message}`);
         }
         
         console.log("User updated successfully:", userData);
@@ -92,10 +110,7 @@ export function useUserDialog(onSuccess: () => void) {
 
         if (error) {
           console.error("Error creating user:", error);
-          if (error.message.includes("policy")) {
-            throw new Error("Permission denied: You don't have the right permissions to create users");
-          }
-          throw error;
+          throw new Error(`Failed to create user: ${error.message}`);
         }
         
         console.log("User created successfully:", userData);

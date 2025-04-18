@@ -11,31 +11,57 @@ export default function useUserManagement() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [hasPermission, setHasPermission] = useState(false);
 
-  // Check if user has admin privileges
+  // Check if user has super admin privileges
   useEffect(() => {
     const checkPermission = async () => {
       try {
-        const { data: session } = await supabase.auth.getSession();
+        const { data: session, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          setHasPermission(false);
+          setIsCheckingAuth(false);
+          return;
+        }
+        
         if (!session.session) {
+          console.log("No active session found");
           toast.error("You must be logged in to access this page");
           setHasPermission(false);
           setIsCheckingAuth(false);
           return;
         }
 
-        const user = session.session.user;
-        const email = user.email;
-        const userMetadata = user.user_metadata;
+        // Check if the user is wasperstore@gmail.com (special case)
+        const email = session.session.user.email;
+        if (email === "wasperstore@gmail.com") {
+          console.log("User is the super admin (wasperstore@gmail.com)");
+          setHasPermission(true);
+          setIsCheckingAuth(false);
+          return;
+        }
         
-        console.log("User metadata:", userMetadata);
-        console.log("User email:", email);
+        // Check user role in profiles table
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.session.user.id)
+          .single();
         
-        // Grant access if super admin email or role
-        if (email === "wasperstore@gmail.com" || userMetadata?.role === 'super_admin') {
-          console.log("User has super admin privileges");
+        if (userError) {
+          console.error("Error fetching user role:", userError);
+          toast.error("Failed to verify your permissions");
+          setHasPermission(false);
+          setIsCheckingAuth(false);
+          return;
+        }
+        
+        console.log("User role from database:", userData?.role);
+        
+        if (userData?.role === 'super_admin') {
+          console.log("User has super_admin role");
           setHasPermission(true);
         } else {
-          console.log("User does not have super admin privileges");
+          console.log("User does not have super_admin role");
           toast.error("You don't have permission to manage users");
           setHasPermission(false);
         }
