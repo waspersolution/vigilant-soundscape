@@ -5,26 +5,36 @@ import {
 } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "sonner";
+import { lazy, Suspense } from "react";
 
 import AppLayout from "@/components/layout/AppLayout";
-import Auth from "@/pages/Auth";
-import Home from "@/pages/Home";
-import Map from "@/pages/Map";
-import Patrol from "@/pages/Patrol";
-import Alerts from "@/pages/Alerts";
-import Community from "@/pages/Community";
-import Communication from "@/pages/Communication";
-import Settings from "@/pages/Settings";
-import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
-import NotFound from "@/pages/NotFound";
 import ErrorPage from "@/components/error/ErrorPage";
 import { AuthProvider } from "@/contexts/auth";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { AlertProvider } from "@/contexts/AlertContext";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
-import Voice from "./pages/Voice";
-import Index from "./pages/Index";
 import ErrorBoundary from "./components/error/ErrorBoundary";
+
+// Lazy load pages for code splitting
+const Auth = lazy(() => import("@/pages/Auth"));
+const Home = lazy(() => import("@/pages/Home"));
+const Map = lazy(() => import("@/pages/Map"));
+const Patrol = lazy(() => import("@/pages/Patrol"));
+const Alerts = lazy(() => import("@/pages/Alerts"));
+const Community = lazy(() => import("@/pages/Community"));
+const Communication = lazy(() => import("@/pages/Communication"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const SuperAdminDashboard = lazy(() => import("@/pages/SuperAdminDashboard"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const Voice = lazy(() => import("@/pages/Voice"));
+const Index = lazy(() => import("@/pages/Index"));
+
+// Loading component for lazy-loaded pages
+const PageLoader = () => (
+  <div className="flex items-center justify-center h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+  </div>
+);
 
 function App() {
   const queryClient = new QueryClient({
@@ -36,6 +46,146 @@ function App() {
     },
   });
 
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: (
+        <Suspense fallback={<PageLoader />}>
+          <Index />
+        </Suspense>
+      ),
+      errorElement: <ErrorPage />
+    },
+    {
+      path: "/home",
+      element: (
+        <AppLayout>
+          <Suspense fallback={<PageLoader />}>
+            <Home />
+          </Suspense>
+        </AppLayout>
+      ),
+      errorElement: <ErrorPage />
+    },
+    {
+      path: "/map",
+      element: (
+        <AppLayout>
+          <Suspense fallback={<PageLoader />}>
+            <Map />
+          </Suspense>
+        </AppLayout>
+      ),
+      errorElement: <ErrorPage />
+    },
+    {
+      path: "/patrol",
+      element: (
+        <AppLayout>
+          <Suspense fallback={<PageLoader />}>
+            <Patrol />
+          </Suspense>
+        </AppLayout>
+      ),
+      errorElement: <ErrorPage />
+    },
+    {
+      path: "/alerts",
+      element: (
+        <AppLayout>
+          <Suspense fallback={<PageLoader />}>
+            <Alerts />
+          </Suspense>
+        </AppLayout>
+      ),
+      errorElement: <ErrorPage />
+    },
+    {
+      path: "/community",
+      element: (
+        <AppLayout>
+          <Suspense fallback={<PageLoader />}>
+            <Community />
+          </Suspense>
+        </AppLayout>
+      ),
+      errorElement: <ErrorPage />
+    },
+    {
+      path: "/communication",
+      element: (
+        <AppLayout>
+          <Suspense fallback={<PageLoader />}>
+            <Communication />
+          </Suspense>
+        </AppLayout>
+      ),
+      errorElement: <ErrorPage />
+    },
+    {
+      path: "/communication/:channelId",
+      element: (
+        <AppLayout>
+          <Suspense fallback={<PageLoader />}>
+            <Communication />
+          </Suspense>
+        </AppLayout>
+      ),
+      errorElement: <ErrorPage />
+    },
+    {
+      path: "/settings",
+      element: (
+        <AppLayout>
+          <Suspense fallback={<PageLoader />}>
+            <Settings />
+          </Suspense>
+        </AppLayout>
+      ),
+      errorElement: <ErrorPage />
+    },
+    {
+      path: "/voice",
+      element: (
+        <AppLayout>
+          <Suspense fallback={<PageLoader />}>
+            <Voice />
+          </Suspense>
+        </AppLayout>
+      ),
+      errorElement: <ErrorPage />
+    },
+    {
+      path: "/super-admin",
+      element: (
+        <AppLayout>
+          <Suspense fallback={<PageLoader />}>
+            <SuperAdminDashboard />
+          </Suspense>
+        </AppLayout>
+      ),
+      errorElement: <ErrorPage />
+    },
+    {
+      path: "/auth",
+      element: (
+        <Suspense fallback={<PageLoader />}>
+          <Auth />
+        </Suspense>
+      ),
+      errorElement: <ErrorPage />
+    },
+    {
+      path: "*",
+      element: (
+        <Suspense fallback={<PageLoader />}>
+          <NotFound />
+        </Suspense>
+      ),
+      errorElement: <ErrorPage />
+    },
+  ]);
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -44,75 +194,7 @@ function App() {
             <LocationProvider>
               <AlertProvider>
                 <Toaster position="top-right" />
-                <RouterProvider
-                  router={createBrowserRouter([
-                    {
-                      path: "/",
-                      element: <Index />,
-                      errorElement: <ErrorPage />
-                    },
-                    {
-                      path: "/home",
-                      element: <AppLayout><Home /></AppLayout>,
-                      errorElement: <ErrorPage />
-                    },
-                    {
-                      path: "/map",
-                      element: <AppLayout><Map /></AppLayout>,
-                      errorElement: <ErrorPage />
-                    },
-                    {
-                      path: "/patrol",
-                      element: <AppLayout><Patrol /></AppLayout>,
-                      errorElement: <ErrorPage />
-                    },
-                    {
-                      path: "/alerts",
-                      element: <AppLayout><Alerts /></AppLayout>,
-                      errorElement: <ErrorPage />
-                    },
-                    {
-                      path: "/community",
-                      element: <AppLayout><Community /></AppLayout>,
-                      errorElement: <ErrorPage />
-                    },
-                    {
-                      path: "/communication",
-                      element: <AppLayout><Communication /></AppLayout>,
-                      errorElement: <ErrorPage />
-                    },
-                    {
-                      path: "/communication/:channelId",
-                      element: <AppLayout><Communication /></AppLayout>,
-                      errorElement: <ErrorPage />
-                    },
-                    {
-                      path: "/settings",
-                      element: <AppLayout><Settings /></AppLayout>,
-                      errorElement: <ErrorPage />
-                    },
-                    {
-                      path: "/voice",
-                      element: <AppLayout><Voice /></AppLayout>,
-                      errorElement: <ErrorPage />
-                    },
-                    {
-                      path: "/super-admin",
-                      element: <AppLayout><SuperAdminDashboard /></AppLayout>,
-                      errorElement: <ErrorPage />
-                    },
-                    {
-                      path: "/auth",
-                      element: <Auth />,
-                      errorElement: <ErrorPage />
-                    },
-                    {
-                      path: "*",
-                      element: <NotFound />,
-                      errorElement: <ErrorPage />
-                    },
-                  ])}
-                />
+                <RouterProvider router={router} />
               </AlertProvider>
             </LocationProvider>
           </ThemeProvider>
