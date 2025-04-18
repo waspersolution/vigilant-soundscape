@@ -25,27 +25,20 @@ export function useCommunityFetching() {
         return;
       }
 
-      // Check if current user has admin permissions
-      const { data: currentUserData, error: currentUserError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', sessionData.session.user.id)
-        .single();
-        
-      if (currentUserError) {
-        console.error('Permission error:', currentUserError);
-        if (!currentUserError.message.includes('No rows found')) {
-          throw currentUserError;
-        }
-      }
-
       console.log("Fetching communities");
+      console.log("Current user ID:", sessionData.session.user.id);
+      
       const { data, error } = await supabase
         .from('communities')
         .select('id, name');
 
       if (error) {
         console.error('Error fetching communities:', error);
+        if (error.message.includes("policy")) {
+          toast.error('Permission denied: You do not have access to view communities');
+          setCommunities([]);
+          return;
+        }
         throw error;
       }
 

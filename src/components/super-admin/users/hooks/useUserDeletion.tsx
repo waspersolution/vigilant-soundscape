@@ -30,22 +30,9 @@ export function useUserDeletion(onSuccess: () => void) {
         throw new Error("You must be logged in to perform this action");
       }
       
-      // Check if current user has admin permissions
-      const { data: currentUserData, error: currentUserError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', sessionData.session.user.id)
-        .single();
-        
-      if (currentUserError) {
-        throw new Error(`Permission error: ${currentUserError.message}`);
-      }
-      
-      if (!['admin', 'super_admin'].includes(currentUserData.role)) {
-        throw new Error("You don't have permission to delete users");
-      }
-      
       console.log("Deleting user:", userToDelete.id);
+      console.log("Current user ID:", sessionData.session.user.id);
+      
       const { data, error } = await supabase
         .from('profiles')
         .delete()
@@ -54,8 +41,8 @@ export function useUserDeletion(onSuccess: () => void) {
         
       if (error) {
         console.error("Error deleting user:", error);
-        if (error.message.includes("row-level security")) {
-          throw new Error("Permission denied: Row-level security policy violation");
+        if (error.message.includes("policy")) {
+          throw new Error("Permission denied: You don't have the right permissions to delete users");
         }
         throw error;
       }

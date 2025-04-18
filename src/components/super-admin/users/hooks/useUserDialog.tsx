@@ -43,28 +43,13 @@ export function useUserDialog(onSuccess: () => void) {
         throw new Error("You must be logged in to perform this action");
       }
       
-      // Check if current user has admin permissions
-      const { data: currentUserData, error: currentUserError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', sessionData.session.user.id)
-        .single();
-        
-      if (currentUserError) {
-        throw new Error(`Permission error: ${currentUserError.message}`);
-      }
-      
-      if (!['admin', 'super_admin'].includes(currentUserData.role)) {
-        throw new Error("You don't have permission to manage users");
-      }
-
-      console.log("Submitting user form with data:", data);
-      
       // Process community ID based on role selection
       const isAdminUser = data.role === 'admin' || data.role === 'super_admin';
       const communityId = isAdminUser ? null : 
                          (data.communityId === 'none' ? null : data.communityId || null);
       
+      console.log("Submitting user form with data:", data);
+      console.log("Current user ID:", sessionData.session.user.id);
       console.log("Processed communityId:", communityId);
 
       if (editingUser) {
@@ -82,8 +67,8 @@ export function useUserDialog(onSuccess: () => void) {
 
         if (error) {
           console.error("Error updating user:", error);
-          if (error.message.includes("row-level security")) {
-            throw new Error("Permission denied: Row-level security policy violation");
+          if (error.message.includes("policy")) {
+            throw new Error("Permission denied: You don't have the right permissions to update this user");
           }
           throw error;
         }
@@ -94,7 +79,6 @@ export function useUserDialog(onSuccess: () => void) {
         console.log("Creating new user");
         const uniqueId = crypto.randomUUID();
         
-        // Check if a current session exists to bypass RLS
         const { data: userData, error } = await supabase
           .from('profiles')
           .insert({
@@ -108,8 +92,8 @@ export function useUserDialog(onSuccess: () => void) {
 
         if (error) {
           console.error("Error creating user:", error);
-          if (error.message.includes("row-level security")) {
-            throw new Error("Permission denied: Row-level security policy violation");
+          if (error.message.includes("policy")) {
+            throw new Error("Permission denied: You don't have the right permissions to create users");
           }
           throw error;
         }
